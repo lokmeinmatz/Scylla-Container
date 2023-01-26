@@ -7,7 +7,7 @@ FROM maven:3.5-jdk-8-alpine as build
 ARG https://github.com/bptlab/scylla.git
 WORKDIR /app
 COPY --from=clone /app/scylla /app
-RUN mvn install
+RUN install -Dmaven.test.skip=true
 
 FROM openjdk:8-jre-alpine
 ARG scylla
