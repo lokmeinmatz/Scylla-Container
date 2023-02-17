@@ -1,11 +1,27 @@
 import json
+from os.path import isfile, join
 
 from flask import Flask, request
 from flask_restful import Resource, Api, abort
 import subprocess
+from datetime import datetime
+import os
+
+
+def fileInDirectory(my_dir: str):
+    return [f for f in os.listdir(my_dir) if isfile(join(my_dir, f))]
+
+def listCompare(beforeList: list, afterList: list):
+    return [x for x in afterList if x not in beforeList]
+
+
+def inDirectory(myDir: str):
+    return [x for x in os.listdir(myDir)]
+
 
 app = Flask("ToolAPI")
 api = Api(app)
+
 
 # example request:
 # curl --location --request PUT 'http://127.0.0.1:5000/storedData/data3' \
@@ -14,68 +30,69 @@ api = Api(app)
 
 
 
-with open('storedData.json', 'r') as r:
-    storedData = json.load(r)
+#create project directory:
+#projectDir = os.path.join('projects',str(datetime.now()).replace(" ", "T").replace(':', '_'))  #TODO activate those two lines
+#os.mkdir(projectDir)
+projectDir = os.path.join('projects', 'testp')  #TODO: deactivate
 
+#get filename for file from PetriSim
+for f in inDirectory(projectDir):
+    if f.endswith('.json'):
+        convInputFile = os.path.join('..', projectDir, f)
 
-def write_changes_to_file():
-    with open('storedData.json', 'w') as w:
-        json.dump(storedData, w)
+# run converter
+subprocess.call("node scyllaConverter/ConvertMain.js " + convInputFile + " " + projectDir, shell=True)
 
+# input of Scylla <- output of Scylla Converter:
+for f in inDirectory(projectDir):
+    if f.endswith('.bpmn'):
+        bpmn = os.path.join('..', projectDir, f)
+    elif f.endswith('Global.xml'):
+        globConfig = os.path.join('..', projectDir, f)
+    elif f.endswith('Sim.xml'):
+        simConfig = os.path.join('..', projectDir, f)
 
-class OurData(Resource):
+# run Scylla:
+beforeList = inDirectory(projectDir)
+subprocess.call(['bash', "ScyllaScript2.sh", '--config=' + globConfig, '--bpmn=' + bpmn, '--sim=' + simConfig])
+afterList = inDirectory(projectDir)
 
-    def get(self, data_id):
-        if data_id == "all":
-            print("This is a GET request. Instead of printing we could do sth else")
-            return storedData
-        if data_id not in storedData:
-            print("This is a GET request. Instead of printing we could do sth else")
-            abort(404, message=f"Data {data_id} not found!")
-        print("This is a GET request. Instead of printing we could do sth else")
-        return storedData[data_id]
+# new folder created from Scylla:
+newInDir = listCompare(beforeList, afterList)
 
-    def put(self, data_id):
-        data_from_request = request.data.decode('UTF-8')
-        json_object = json.loads(data_from_request)
-        new_data = {'key1': json_object['key1']}
-        storedData[data_id] = new_data
-        write_changes_to_file()
-        print("This is a PUT request. Instead of printing we could do sth else")
-        return {data_id: storedData[data_id]}, 201
+if len(newInDir) == 1:
+    newScyllaOutFolder = newInDir.pop()
+else:
+    raise Exception("More folders than one created by scylla!")
 
-    def delete(self, data_id):
-        if data_id not in storedData:
-            abort(404, message=f"Data {data_id} not found!")
-        del storedData[data_id]
-        write_changes_to_file()
-        print("This is a DELETE request. Instead of printing we could do sth else")
-        return "", 204
+# get filenames created from Scylla:
+newScyllaFiles = fileInDirectory(join(projectDir, newScyllaOutFolder))
+
+print(newScyllaFiles)   #TODO: return to PetriSim
+# def write_changes_to_file():
+#    with open('storedData.json', 'w') as w:
+#        json.dump(storedData, w)
+#
 
 
 class DataOverview(Resource):
 
     def get(self):
         print("This is a GET request. Instead of printing we could do sth else")
-        return storedData
+        return 201
 
     def post(self):
         data_from_request = request.data.decode('UTF-8')
         json_object = json.loads(data_from_request)
         new_data = {'key1': json_object['key1']}
         data_id = 'data' + str(max(int(v.lstrip('data')) for v in storedData.keys()) + 1)
-        storedData[data_id] = new_data
-        write_changes_to_file()
+
         print("This is a POST request. Instead of printing we could do sth else")
         # start converter with body from request
-        # start the shell script with parameter output from converter
-        print("start")
-        subprocess.call("ScyllaScript.sh", shell=True)
-        print("end")
+
+
         return storedData[data_id], 201
 
-
-api.add_resource(OurData, '/storeddata/<data_id>')
 api.add_resource(DataOverview, '/storeddata')
 
 if __name__ == '__main__':

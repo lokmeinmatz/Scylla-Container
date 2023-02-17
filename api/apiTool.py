@@ -2,6 +2,7 @@ import json
 
 from flask import Flask, request
 from flask_restful import Resource, Api, abort
+import subprocess
 
 app = Flask("ToolAPI")
 api = Api(app)
@@ -11,6 +12,9 @@ api = Api(app)
 # --header 'Content-Type: application/json' \
 # --data-raw '{"key1": "someKey"}'
 
+print("start")
+subprocess.call("..\ScyllaScript.sh", shell=True)
+print("end")
 
 with open('storedData.json', 'r') as r:
     storedData = json.load(r)
@@ -65,6 +69,8 @@ class DataOverview(Resource):
         storedData[data_id] = new_data
         write_changes_to_file()
         print("This is a POST request. Instead of printing we could do sth else")
+        # start converter with body from request
+        # start the shell script with parameter output from converter
         return storedData[data_id], 201
 
 
