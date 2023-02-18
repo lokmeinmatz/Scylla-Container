@@ -52,14 +52,27 @@ class ScyllaApi(Resource):
     def post(self):
 
         # get projectID from header and create project Directory:
-        projectID = request.headers['projectID']
+        if 'projectid' in request.headers and request.headers['projectid'] != '':
+            projectID = request.headers['projectid']
+        else:
+            return 'please define header projectid: <enter Project ID>'
+        if projectID in inDirectory('projects'):
+            return("ProjectID exists already. Please choose different ID")
         projectDir = os.path.join('projects', projectID)
         os.mkdir(projectDir)
 
         # save BPMN and Parameter file from request
-        bpmn = request.files['bpmn']
+        if 'bpmn' in request.files: # and request.headers['projectid'] != '':
+            bpmn = request.files['bpmn']
+        else:
+            return 'please attach bpmn: <Path to bpmn>'
+
+        if 'param' in request.files: # and request.headers['projectid'] != '':
+            param = request.files['param']
+        else:
+            return 'please attach param: <Path to parameter file>'
+
         bpmn.save(os.path.join(projectDir, bpmn.filename))
-        param = request.files['param']
         param.save(os.path.join(projectDir, param.filename))
 
         # build file_path_and_name for Converter
