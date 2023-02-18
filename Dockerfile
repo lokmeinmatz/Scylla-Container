@@ -1,20 +1,39 @@
-FROM alpine/git as clone
-ARG https://github.com/tutkualpsar/scylla.git
-WORKDIR /app
-RUN git clone https://github.com/tutkualpsar/scylla.git
+# get Linux
+FROM alpine:latest
+WORKDIR /app/
+COPY . /app
 
-FROM maven:3.5-jdk-8-alpine as build
-ARG https://github.com/bptlab/scylla.git
-WORKDIR /app
-COPY --from=clone /app/scylla /app
-RUN install -Dmaven.test.skip=true
+# Set up curl and Java
+RUN apk update \
+&& apk upgrade \
+&& apk add --no-cache bash \
+&& apk add --no-cache --virtual=build-dependencies unzip \
+&& apk add --no-cache curl \
+&& apk add --no-cache nodejs npm \
+&& apk add --no-cache openjdk13-jre
 
-FROM openjdk:8-jre-alpine
-ARG scylla
-ARG 0.0.1-SNAPSHOT
-ENV artifact scylla-0.0.1-SNAPSHOT.jar
-WORKDIR /app
-COPY --from=build /app/target/scylla-0.0.1-SNAPSHOT /app
+
+RUN npm install --save xml-js \
+&& npm install --save sax
+
+
+# GET Python
+RUN apk add --no-cache python3 \
+&& python3 -m ensurepip \
+&& pip3 install --upgrade pip setuptools \
+&& rm -r /usr/lib/python*/ensurepip && \
+if [ ! -e /usr/bin/pip ]; then ln -s pip3 /usr/bin/pip ; fi && \
+if [[ ! -e /usr/bin/python ]]; then ln -sf /usr/bin/python3 /usr/bin/python; fi && \
+rm -r /root/.cache
+
+# Switch directory to api (to start the Flask listener)
+# WORKDIR /app/api
+
+# Get requirements for python
+RUN pip install -r requirements.txt
+
+# show port 5000 to the outside world
 EXPOSE 8080
-ENTRYPOINT ["sh" , "-c"]
-CMD ["java -jar scylla-0.0.1-SNAPSHOT"]
+
+# run the Flask listener on port 5000
+CMD ["python3", "apiTool.py"]

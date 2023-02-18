@@ -117,4 +117,4 @@ api.add_resource(ScyllaApi, '/scyllaapi') #endpoint to PetriSim
 api.add_resource(Test, '/test') #for testing
 
 if __name__ == '__main__':
-    app.run(port=5000, debug=True)
+    app.run(port=8080, debug=True)
