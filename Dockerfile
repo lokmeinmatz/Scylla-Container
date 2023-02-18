@@ -27,7 +27,7 @@ if [[ ! -e /usr/bin/python ]]; then ln -sf /usr/bin/python3 /usr/bin/python; fi 
 rm -r /root/.cache
 
 # Switch directory to api (to start the Flask listener)
-# WORKDIR /app/api
+WORKDIR /app/api
 
 # Get requirements for python
 RUN pip install -r requirements.txt
