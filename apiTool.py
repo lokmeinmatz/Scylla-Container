@@ -10,7 +10,7 @@ import os
 # --form 'bpmn=@"<path to BPMN file>"' \
 # --form 'param=@"<path to .json Parameter-file>"'
 
-#for example
+#for example:
 # curl --location 'http://127.0.0.1:5000/scyllaapi?=newtitle' \
 # --header 'projectid: testproject' \
 # --form 'bpmn=@"/C:/Users/andre/Desktop/pizza_1.bpmn"' \
@@ -44,7 +44,7 @@ class Test(Resource):
         return 201
 
 # this is the functionality of the Scylla-Api-endpoint to PetriSim
-class DataFromPetriSim(Resource):
+class ScyllaApi(Resource):
     def get(self):
         print("This is a GET request. Please use a POST instead to get scylla output from PetriSim input. See request form in repo readme")
         return 201
@@ -99,7 +99,7 @@ class DataFromPetriSim(Resource):
         return send_file(logsPathAndName, as_attachment=True) # TODO: return several files to PetriSim not only the Event Logs
 
 
-api.add_resource(DataFromPetriSim, '/scyllaapi') #endpoint to PetriSim
+api.add_resource(ScyllaApi, '/scyllaapi') #endpoint to PetriSim
 api.add_resource(Test, '/test') #for testing
 
 if __name__ == '__main__':
