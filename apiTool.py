@@ -1,4 +1,3 @@
-import json
 from os.path import isfile, join
 from flask import Flask, request, send_file
 from flask_restful import Resource, Api
@@ -18,6 +17,7 @@ import os
 # --form 'param=@"/C:/Users/andre/Desktop/pizza1.json"'
 
 
+# helper functions:
 def fileInDirectory(my_dir: str):
     return [f for f in os.listdir(my_dir) if isfile(join(my_dir, f))]
 
@@ -27,15 +27,13 @@ def listCompare(beforeList: list, afterList: list):
 def inDirectory(myDir: str):
     return [x for x in os.listdir(myDir)]
 
-
+# define Api
 app = Flask("ToolAPI")
 api = Api(app)
 
-
+# this is a test class for debugging and testing:
 class Test(Resource):
-# this is a test class for debugging and testing
     def post(self):
-        #keys = request.files.keys()
         projectID = request.headers['projectID']
         projectDir = os.path.join('projects', projectID)
         os.mkdir(projectDir)
@@ -43,20 +41,12 @@ class Test(Resource):
         bpmn.save(os.path.join(projectDir, bpmn.filename))
         param = request.files['param']
         param.save(os.path.join(projectDir, param.filename))
-        # for file in files:
-        #     file.save(os.path.join('projects', file.filename))
-
-        #data_from_request = request.files[name]
-        # with open(os.path.join('/path/to/Documents', completeName), "w") as file1:
-        #     toFile = raw_input("Write what you want into the field")
-        #     file1.write(toFile)
         return 201
 
-
-class DataFromPetriSim(Resource):
 # this is the functionality of the Scylla-Api-endpoint to PetriSim
+class DataFromPetriSim(Resource):
     def get(self):
-        print("This is a GET request. Instead of printing we could do sth else")
+        print("This is a GET request. Please use a POST instead to get scylla output from PetriSim input. See request form in repo readme")
         return 201
 
     def post(self):
@@ -101,11 +91,12 @@ class DataFromPetriSim(Resource):
         # get filenames created from Scylla:
         newScyllaFiles = fileInDirectory(join(projectDir, newScyllaOutFolder))
 
-        print(newScyllaFiles)
-
-        print("This is a POST request. Instead of printing we could do sth else")
-
-        return send_file('projects/testp/pizza_1.bpmn', as_attachment=True) # TODO: return several files to PetriSim
+        print('These are the Scylla simulation output: '+ str(newScyllaFiles))
+        for x in inDirectory(os.path.join(projectDir, newScyllaOutFolder)):
+            if (x.endswith('.xes')):
+                logsFileName = x
+        logsPathAndName = os.path.join(projectDir, newScyllaOutFolder, logsFileName)
+        return send_file(logsPathAndName, as_attachment=True) # TODO: return several files to PetriSim not only the Event Logs
 
 
 api.add_resource(DataFromPetriSim, '/scyllaapi') #endpoint to PetriSim
