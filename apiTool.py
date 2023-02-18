@@ -80,7 +80,8 @@ class ScyllaApi(Resource):
 
         converterPath = os.path.join('scyllaConverter', 'ConvertMain.js')
         # run converter
-        subprocess.call("node " + converterPath + " " + convInputFile + " " + projectDir, shell=True)
+        #subprocess.call("node " + converterPath + " " + convInputFile + " " + projectDir, shell=True)
+        subprocess.call(['bash', "ConvScript.sh", convInputFile, projectDir])
 
         # input of Scylla <- output of Scylla Converter:
         for f in inDirectory(projectDir):
