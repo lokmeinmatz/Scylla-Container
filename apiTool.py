@@ -1,13 +1,12 @@
 import json
 from os.path import isfile, join
 
-from flask import Flask, request, send_file
+from flask import Flask, request, send_file, send_from_directory
 from flask_restful import Resource, Api, abort
 import subprocess
 from datetime import datetime
 import os
-
-
+import werkzeug
 def fileInDirectory(my_dir: str):
     return [f for f in os.listdir(my_dir) if isfile(join(my_dir, f))]
 
@@ -29,11 +28,30 @@ api = Api(app)
 # --data-raw '{"key1": "someKey"}'
 
 
+class Test(Resource):
+    # def get(self):
+    #     print("This is a GET request. Instead of printing we could do sth else")
+    #     return 201
+    def post(self):
+        #eys = request.files.keys()
+        projectID = request.headers['projectID']
+        projectDir = os.path.join('projects', projectID)
+        os.mkdir(projectDir)
+        bpmn = request.files['bpmn']
+        bpmn.save(os.path.join(projectDir, bpmn.filename))
+        param = request.files['param']
+        param.save(os.path.join(projectDir, param.filename))
+        # for file in files:
+        #     file.save(os.path.join('projects', file.filename))
+
+        #data_from_request = request.files[name]
+        # with open(os.path.join('/path/to/Documents', completeName), "w") as file1:
+        #     toFile = raw_input("Write what you want into the field")
+        #     file1.write(toFile)
+        return 201
 
 
-
-
-class DataOverview(Resource):
+class DataFromPetriSim(Resource):
 
     def get(self):
         print("This is a GET request. Instead of printing we could do sth else")
@@ -42,7 +60,7 @@ class DataOverview(Resource):
     def post(self):
         data_from_request = request.data.decode('UTF-8')
         #json_object = json.loads(data_from_request)
-
+        #data_from_request = request.files['pizza1.json']
         # create project directory:
         #projectDir = os.path.join('projects',str(datetime.now()).replace(" ", "T").replace(':', '_'))  #TODO activate those two lines
         #os.mkdir(projectDir)
@@ -96,11 +114,13 @@ class DataOverview(Resource):
         # start converter with body from request
         files = {'file1': open('hello.py', 'rb'), 'file2': open('hello2.py', 'rb')}
         #return str(open(os.path.join(projectDir,"pizza_1.json"), "r"))
-        return send_file() or send_from_directory
+        #return send_from_directory(newScyllaOutFolder, projectDir, as_attachment=True)
+        return send_file('projects/testp/pizza_1.bpmn', as_attachment=True)
 
 
 
-api.add_resource(DataOverview, '/storeddata')
+api.add_resource(DataFromPetriSim, '/scyllaapi')
+api.add_resource(Test, '/test')
 
 if __name__ == '__main__':
     app.run(port=5000, debug=True)

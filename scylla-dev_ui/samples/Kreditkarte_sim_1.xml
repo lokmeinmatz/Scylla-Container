@@ -38,6 +38,8 @@
         </bsim:constantDistribution>
       </bsim:duration>
       <bsim:resources/>
+        resesource1
+      <bsim:resources/>
     </bsim:Task>
 
     <bsim:Task id="UserTask_1jdy2bz" name="Weitere Informationen einholen">
@@ -48,6 +50,9 @@
       </bsim:duration>
       <bsim:resources>
         <bsim:resource id="Sachbearbeiter" amount="5" />
+          duration
+            distribtutiontype
+            
       </bsim:resources>
     </bsim:Task>
 
