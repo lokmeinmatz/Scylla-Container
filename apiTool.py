@@ -1,18 +1,28 @@
 import json
 from os.path import isfile, join
-
-from flask import Flask, request, send_file, send_from_directory
-from flask_restful import Resource, Api, abort
+from flask import Flask, request, send_file
+from flask_restful import Resource, Api
 import subprocess
-from datetime import datetime
 import os
-import werkzeug
+
+# Usage: send Post request to scyllaapi endpoint like this:
+# curl --location 'http://127.0.0.1:5000/scyllaapi?=newtitle' \
+# --header 'projectid: <enter Project ID here>' \
+# --form 'bpmn=@"<path to BPMN file>"' \
+# --form 'param=@"<path to .json Parameter-file>"'
+
+#for example
+# curl --location 'http://127.0.0.1:5000/scyllaapi?=newtitle' \
+# --header 'projectid: testproject' \
+# --form 'bpmn=@"/C:/Users/andre/Desktop/pizza_1.bpmn"' \
+# --form 'param=@"/C:/Users/andre/Desktop/pizza1.json"'
+
+
 def fileInDirectory(my_dir: str):
     return [f for f in os.listdir(my_dir) if isfile(join(my_dir, f))]
 
 def listCompare(beforeList: list, afterList: list):
     return [x for x in afterList if x not in beforeList]
-
 
 def inDirectory(myDir: str):
     return [x for x in os.listdir(myDir)]
@@ -22,18 +32,10 @@ app = Flask("ToolAPI")
 api = Api(app)
 
 
-# example request:
-# curl --location --request PUT 'http://127.0.0.1:5000/storedData/data3' \
-# --header 'Content-Type: application/json' \
-# --data-raw '{"key1": "someKey"}'
-
-
 class Test(Resource):
-    # def get(self):
-    #     print("This is a GET request. Instead of printing we could do sth else")
-    #     return 201
+# this is a test class for debugging and testing
     def post(self):
-        #eys = request.files.keys()
+        #keys = request.files.keys()
         projectID = request.headers['projectID']
         projectDir = os.path.join('projects', projectID)
         os.mkdir(projectDir)
@@ -52,50 +54,45 @@ class Test(Resource):
 
 
 class DataFromPetriSim(Resource):
-
+# this is the functionality of the Scylla-Api-endpoint to PetriSim
     def get(self):
         print("This is a GET request. Instead of printing we could do sth else")
         return 201
 
     def post(self):
-        data_from_request = request.data.decode('UTF-8')
-        #json_object = json.loads(data_from_request)
-        #data_from_request = request.files['pizza1.json']
-        # create project directory:
-        #projectDir = os.path.join('projects',str(datetime.now()).replace(" ", "T").replace(':', '_'))  #TODO activate those two lines
-        #os.mkdir(projectDir)
 
-        projectDir = os.path.join('projects', 'testp')  # TODO: deactivate
+        # get projectID from header and create project Directory:
+        projectID = request.headers['projectID']
+        projectDir = os.path.join('projects', projectID)
+        os.mkdir(projectDir)
 
-        newFile = open(os.path.join(projectDir,"pizza_1.json"), "x") # TODO: getName from request
-        newFile.write(data_from_request)
-        newFile.close()
+        # save BPMN and Parameter file from request
+        bpmn = request.files['bpmn']
+        bpmn.save(os.path.join(projectDir, bpmn.filename))
+        param = request.files['param']
+        param.save(os.path.join(projectDir, param.filename))
 
-        # get filename for file from PetriSim
-        for f in inDirectory(projectDir):
-            if f.endswith('.json'):
-                convInputFile = os.path.join('..', projectDir, f)
+        # build file_path_and_name for Converter
+        convInputFile = os.path.join('..', projectDir, param.filename)
 
         # run converter
         subprocess.call("node scyllaConverter/ConvertMain.js " + convInputFile + " " + projectDir, shell=True)
 
         # input of Scylla <- output of Scylla Converter:
         for f in inDirectory(projectDir):
-            if f.endswith('.bpmn'):
-                bpmn = os.path.join('..', projectDir, f)
-            elif f.endswith('Global.xml'):
+            if f.endswith('Global.xml'):
                 globConfig = os.path.join('..', projectDir, f)
             elif f.endswith('Sim.xml'):
                 simConfig = os.path.join('..', projectDir, f)
+        bpmnArg = os.path.join('..', projectDir, bpmn.filename)
 
         # run Scylla:
         beforeList = inDirectory(projectDir)
-        subprocess.call(['bash', "ScyllaScript2.sh", '--config=' + globConfig, '--bpmn=' + bpmn, '--sim=' + simConfig])
+        subprocess.call(['bash', "ScyllaScript2.sh", '--config=' + globConfig, '--bpmn=' + bpmnArg, '--sim=' + simConfig])
         afterList = inDirectory(projectDir)
 
         # new folder created from Scylla:
         newInDir = listCompare(beforeList, afterList)
-
         if len(newInDir) == 1:
             newScyllaOutFolder = newInDir.pop()
         else:
@@ -104,23 +101,15 @@ class DataFromPetriSim(Resource):
         # get filenames created from Scylla:
         newScyllaFiles = fileInDirectory(join(projectDir, newScyllaOutFolder))
 
-        print(newScyllaFiles)  # TODO: return to PetriSim
-        # def write_changes_to_file():
-        #    with open('storedData.json', 'w') as w:
-        #        json.dump(storedData, w)
-        #
+        print(newScyllaFiles)
 
         print("This is a POST request. Instead of printing we could do sth else")
-        # start converter with body from request
-        files = {'file1': open('hello.py', 'rb'), 'file2': open('hello2.py', 'rb')}
-        #return str(open(os.path.join(projectDir,"pizza_1.json"), "r"))
-        #return send_from_directory(newScyllaOutFolder, projectDir, as_attachment=True)
-        return send_file('projects/testp/pizza_1.bpmn', as_attachment=True)
+
+        return send_file('projects/testp/pizza_1.bpmn', as_attachment=True) # TODO: return several files to PetriSim
 
 
-
-api.add_resource(DataFromPetriSim, '/scyllaapi')
-api.add_resource(Test, '/test')
+api.add_resource(DataFromPetriSim, '/scyllaapi') #endpoint to PetriSim
+api.add_resource(Test, '/test') #for testing
 
 if __name__ == '__main__':
     app.run(port=5000, debug=True)
