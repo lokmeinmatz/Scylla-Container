@@ -78,8 +78,9 @@ class ScyllaApi(Resource):
         # build file_path_and_name for Converter
         convInputFile = os.path.join('..', projectDir, param.filename)
 
+        converterPath = os.path.join('scyllaConverter', 'ConvertMain.js')
         # run converter
-        subprocess.call("node scyllaConverter/ConvertMain.js " + convInputFile + " " + projectDir, shell=True)
+        subprocess.call("node " + converterPath + " " + convInputFile + " " + projectDir, shell=True)
 
         # input of Scylla <- output of Scylla Converter:
         for f in inDirectory(projectDir):
