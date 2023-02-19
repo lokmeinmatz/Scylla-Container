@@ -37,8 +37,7 @@ module.exports = {
                 return console.error(err);
             }
         });*/
-        console.log(folderName)
-        console.log(folderpath)
+        console.log('Into folder: ' + folderpath)
 
         // create one global configuration:
         globalConfig_json = glo_co.createNewJsonGlob(scenario, projectName, sceIndex);

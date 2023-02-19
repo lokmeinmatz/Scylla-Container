@@ -32,7 +32,6 @@ if (!filename.endsWith('.sjon')) {
 }
 
 console.log('Converting input-file: ' + filename)
-console.log('Of Project: ' + projectName)
 
 // start conversion for each scenario in input file:
 if (jsonObj instanceof Array) {

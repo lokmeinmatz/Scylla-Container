@@ -5,16 +5,16 @@ import subprocess
 import os
 
 # Usage: send Post request to scyllaapi endpoint like this:
-# curl --location 'http://127.0.0.1:5000/scyllaapi?=newtitle' \
+# curl --location 'http://127.0.0.1:8080/scyllaapi' \
 # --header 'projectid: <enter Project ID here>' \
 # --form 'bpmn=@"<path to BPMN file>"' \
 # --form 'param=@"<path to .json Parameter-file>"'
 
 #for example:
-# curl --location 'http://127.0.0.1:5000/scyllaapi?=newtitle' \
-# --header 'projectid: testproject' \
-# --form 'bpmn=@"/C:/Users/andre/Desktop/pizza_1.bpmn"' \
-# --form 'param=@"/C:/Users/andre/Desktop/pizza1.json"'
+# curl --location 'http://127.0.0.1:8080/scyllaapi' \
+# --header 'projectid: 123' \
+# --form 'bpmn=@"/C:/Users/andre/github/Scylla-container/requestData/pizza_1.bpmn"' \
+# --form 'param=@"/C:/Users/andre/github/Scylla-container/requestData/pizza1.json"'
 
 
 # helper functions:
@@ -80,8 +80,7 @@ class ScyllaApi(Resource):
 
         converterPath = os.path.join('scyllaConverter', 'ConvertMain.js')
         # run converter
-        #subprocess.call("node " + converterPath + " " + convInputFile + " " + projectDir, shell=True)
-        subprocess.call(['bash', "ConvScript.sh", convInputFile, projectDir])
+        subprocess.call("node " + converterPath + " " + convInputFile + " " + projectDir, shell=True)
 
         # input of Scylla <- output of Scylla Converter:
         for f in inDirectory(projectDir):
@@ -94,11 +93,17 @@ class ScyllaApi(Resource):
         # run Scylla:
         beforeList = inDirectory(projectDir)
         subprocess.call(['bash', "ScyllaScript2.sh", '--config=' + globConfig, '--bpmn=' + bpmnArg, '--sim=' + simConfig])
+        #subprocess.call('java -cp "scylla-dev_ui/target/classes;./dependencies/*;lib/*;*" de.hpi.bpt.scylla.Scylla --config=' + globConfig + ' --bpmn=' + bpmnArg + ' --sim=' + simConfig + ' --enable-bps-logging')
+        #run_scylla_command = 'java -cp /scylla-dev_ui/target/classes/:/dependencies/*:/scylla-dev_ui/lib/*:* de.hpi.bpt.scylla.Scylla --config=/scylla-dev_ui/samples/Kreditkarte_global_1.xml --bpmn=/scylla-dev_ui/samples/Kreditkarte_1.bpmn --sim=/scylla-dev_ui/samples/Kreditkarte_sim_1.xml --enable-bps-logging'
+        #process = subprocess.Popen(run_scylla_command.split(), stdout=subprocess.PIPE )
+
         afterList = inDirectory(projectDir)
 
         # new folder created from Scylla:
         newInDir = listCompare(beforeList, afterList)
-        if len(newInDir) == 1:
+        if len(newInDir) == 0:
+            raise Exception("No output folders created by scylla!")
+        elif len(newInDir) == 1:
             newScyllaOutFolder = newInDir.pop()
         else:
             raise Exception("More folders than one created by scylla!")
