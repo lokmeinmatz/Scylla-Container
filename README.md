@@ -39,9 +39,20 @@ In folder _requestData_ there are sample files to simulate a request from PetriS
 curl --location 'http://127.0.0.1:8080/scyllaapi' \
 --header 'projectid: your_projectID' \
 --form 'bpmn=@"path-to_BPMN_file"' \
---form 'param=@"path-to_.json_Parameter_file"'
+--form 'param=@"path-to_.json_Parameter_file"'  
 
-### 📦️ DockerFile (Scylla) 
+### for example:
+  
+curl --location 'http://127.0.0.1:8080/scyllaapi' \
+--header 'projectid: 123' \
+--form 'bpmn=@"/C:/Users/user1/github/Scylla-container/requestData/pizza_1.bpmn"' \
+--form 'param=@"/C:/Users/user1/github/Scylla-container/requestData/pizza1.json"'
+
+
+## Returned files to Client
+zipped Scylla output files
+
+### 📦️ DockerFile
 Following instructers briefly explains the steps required to start the Flask listener in a Scylla Docker container (to run separately from PetriSim):
 
 First, build the Docker image using the Dockerfile. From this directory, in the terminal, call 'sudo docker build -t apiTool .'
@@ -54,15 +65,3 @@ This runs the created image and exposes port 8000 for the Flask listener.
 You can use 'sudo docker ps' to see it's tag and 'sudo docker logs <container-tag>' to check what it prints. 
 
 ! The above instructions assume you compile scylla successfully, using Apache Maven.
-  
-
-### for example:
-  
-curl --location 'http://127.0.0.1:8080/scyllaapi' \
---header 'projectid: 123' \
---form 'bpmn=@"/C:/Users/user1/github/Scylla-container/requestData/pizza_1.bpmn"' \
---form 'param=@"/C:/Users/user1/github/Scylla-container/requestData/pizza1.json"'
-
-
-## Returned files to Client
-zipped Scylla output files
