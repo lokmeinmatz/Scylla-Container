@@ -37,6 +37,12 @@ app = Flask("ToolAPI")
 api = Api(app)
 
 # this is the functionality of the Scylla-Api-endpoint to PetriSim
+
+
+class Test(Resource):
+    def get(self):
+
+
 class ScyllaApi(Resource):
     def get(self):
         print(
@@ -130,6 +136,7 @@ class ScyllaApi(Resource):
 
 
 api.add_resource(ScyllaApi, '/scyllaapi')  # endpoint to PetriSim
+api.add_resource(ScyllaApi, '/test')  # endpoint for testing
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
