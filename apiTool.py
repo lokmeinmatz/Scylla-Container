@@ -38,16 +38,16 @@ api = Api(app)
 
 # this is the functionality of the Scylla-Api-endpoint to PetriSim
 
-
-class Test(Resource):
-    def get(self):
-
-
+       
+    
 class ScyllaApi(Resource):
     def get(self):
-        print(
-            "This is a GET request. Please use a POST instead to get scylla output from PetriSim input. See request form in repo readme")
-        return 201
+        run_scylla_command = 'java -cp /app/scylla/target/classes/:/app/dependencies/*:/app/scylla/lib/*:/app/* de.hpi.bpt.scylla.Scylla --config=/app/scylla/samples/Kreditkarte_global_1.xml --bpmn=/app/scylla/samples/Kreditkarte_1.bpmn --sim=/app/scylla/samples/Kreditkarte_sim_1.xml --enable-bps-logging'
+        process = subprocess.Popen(run_scylla_command.split(), stdout=subprocess.PIPE )
+
+        samples_content = os.listdir('/app/scylla/samples/') # when a GET request comes to the Flask listener, we run scylla and print the contents of /app/scylla/samples/ to check whether the experiment folder is created or not.
+        
+        return samples_content
 
     def post(self):
 
@@ -136,7 +136,6 @@ class ScyllaApi(Resource):
 
 
 api.add_resource(ScyllaApi, '/scyllaapi')  # endpoint to PetriSim
-api.add_resource(ScyllaApi, '/test')  # endpoint for testing
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
