@@ -59,12 +59,7 @@ function createGlobConfig(scenario, projectName, sceIndex) {
 
     }
     attributes.id = projectName + '_Sce' + sceIndex + '_Global'
-    //attributes.xmlns = 'tbd';  //not used in PetriSim yet
-    //prefix = 'tbd' //not used in PetriSim yet
-    //xmls_string = 'xmlns:' + prefix //not used in PetriSim yet
-    //attributes[xmls_string] = "ourPetriSimTool" //not used in PetriSim yet
-    //attributes.targetname = 'ourTargetName'; //not used in PetriSim yet
-    resourceData.dynamicResource.map(d=>d._attributes.defaultTimeUnit = conv_ele.getScenTimeUnit(scenario.timeUnit)) //TODO: scenario.timeUnit
+    resourceData.dynamicResource.map(d => d._attributes.defaultTimeUnit = conv_ele.getScenTimeUnit(scenario.timeUnit))
     globConfig.resourceData = resourceData;
     globConfig.timetables = timetables;
     globConfig._attributes = attributes;

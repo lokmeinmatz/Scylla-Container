@@ -36,20 +36,6 @@ def inDirectory(myDir: str):
 app = Flask("ToolAPI")
 api = Api(app)
 
-
-# this is a test class for debugging and testing:
-class Test(Resource):
-    def post(self):
-        projectID = request.headers['projectID']
-        projectDir = os.path.join('projects', projectID)
-        os.mkdir(projectDir)
-        bpmn = request.files['bpmn']
-        bpmn.save(os.path.join(projectDir, bpmn.filename))
-        param = request.files['param']
-        param.save(os.path.join(projectDir, param.filename))
-        return 201
-
-
 # this is the functionality of the Scylla-Api-endpoint to PetriSim
 class ScyllaApi(Resource):
     def get(self):
@@ -139,7 +125,6 @@ class ScyllaApi(Resource):
 
 
 api.add_resource(ScyllaApi, '/scyllaapi')  # endpoint to PetriSim
-api.add_resource(Test, '/test')  # for testing
 
 if __name__ == '__main__':
     app.run(port=8080, debug=True)

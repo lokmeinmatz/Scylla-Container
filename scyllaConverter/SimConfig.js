@@ -1,10 +1,9 @@
 const conv_ele = require('./ConvertElements');
 
-module.exports ={
+module.exports = {
     createNewJsonSim: function (scenario, sceIndex, projectName, modIndex) {
-
-        var newJson = {"_declaration":{"_attributes":{"version":"1.0","encoding":"UTF-8"}}};
-        newJson.definitions = createSimConfig(scenario,sceIndex, projectName, modIndex);
+        var newJson = {"_declaration": {"_attributes": {"version": "1.0", "encoding": "UTF-8"}}};
+        newJson.definitions = createSimConfig(scenario, sceIndex, projectName, modIndex);
         return newJson;
     }
 }
@@ -30,13 +29,12 @@ function createSimConfig(scenario, sceIndex, projectName, modIndex) {
             uniqueGatewayTypes.push(gatewayTypes[i].split(':')[1]);//.slice(4,-0));
         }
     }
-    //    uniqueGatewayTypes= uniqueGatewayTypes.map(g =>g.charAt(0).toLowerCase() + g.slice(1));
 
     // taking care of different capitalization in Scylla and PetriSim
     for (let i in uniqueGatewayTypes) {
         simConfig[uniqueGatewayTypes[i].charAt(0).toLowerCase() + uniqueGatewayTypes[i].slice(1)] = conv_ele.createGateways(newModel.modelParameter.gateways, uniqueGatewayTypes[i]);
     }
-    uniqueGatewayTypes= uniqueGatewayTypes.map(g =>g.charAt(0).toLowerCase() + g.slice(1));
+    uniqueGatewayTypes = uniqueGatewayTypes.map(g => g.charAt(0).toLowerCase() + g.slice(1));
 
     // adding probabilities to gateways (getting them from sequence by flow ids):
     for (let k in uniqueGatewayTypes) {
@@ -59,22 +57,21 @@ function createSimConfig(scenario, sceIndex, projectName, modIndex) {
             uniqueEventTypes.push(eventTypes[i])//.split(':')[1]);//.slice(4,-0));
         }
     }
-    uniqueEventTypes = uniqueEventTypes.map(u=> u.split(':')[1])    //TODO: maybe first letter lower case
+    uniqueEventTypes = uniqueEventTypes.map(u => u.split(':')[1])    //TODO: maybe first letter lower case
     for (let i in uniqueEventTypes) {
         simConfig[uniqueEventTypes[i].charAt(0).toLowerCase() + uniqueEventTypes[i].slice(1)] = conv_ele.createEvents(newModel.modelParameter.events, uniqueEventTypes[i]);
     }
 
 
-    date =  scenario.startingDate.slice(6,10) + '-' +
-            scenario.startingDate.slice(3,5) + '-' +
-            scenario.startingDate.slice(0,2)
+    date = scenario.startingDate.slice(6, 10) + '-' +
+        scenario.startingDate.slice(3, 5) + '-' +
+        scenario.startingDate.slice(0, 2)
     time = scenario.startingTime + '+01:00'
 
     attributes.id = projectName + '_Sce' + sceIndex + '_Mod' + modIndex + '_Sim'
     attributes.startDateTime = date + 'T' + time
-    //defAttr.xmlns = 'xmlns:name'; //not used by PetriSim yet
-    //defAttr.targetname = 'ourTargetName';    //not used by PetriSim yet
-    attributes.processRef = 'Process_1'  //TODO: maybe model?
+
+    attributes.processRef = 'Process_1'
     attributes.processInstances = scenario.numberOfInstances
     definitions._attributes = defAttr;
     simConfig._attributes = attributes;

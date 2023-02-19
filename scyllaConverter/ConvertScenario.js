@@ -1,4 +1,4 @@
-// in our representation a model contains
+// in PetriSim representation a model contains
 //  one BPMN and
 //  one set of global configurations and
 //  one set of process configurations
@@ -11,6 +11,7 @@ const fs = require('fs');
 const sim_co = require("./SimConfig");
 const path = require('path');
 
+// set options for conversion from .json to .xml
 var options = {
     fullTagEmptyElement: false,
     compact: true,
@@ -26,25 +27,16 @@ module.exports = {
 
     convertScen: function (scenario, projectName, sceIndex, projectDir) {
 
-/*        var folder = 'convOut'
-        var folderName = path.join(projectDir, folder)
-        */
-        var folderName = projectDir
-        var folderpath = path.join(__dirname,'..', folderName);
-        // var folderpath = path.join(__dirname, folderName); //for debugging
-/*        fs.mkdir(folderpath, (err) => {
-            if (err) {
-                return console.error(err);
-            }
-        });*/
-        console.log('Into folder: ' + folderpath)
+        // create output folder path
+        var folderPath = path.join(__dirname, '..', projectDir);
+        console.log('Into folder: ' + folderPath)
 
         // create one global configuration:
         globalConfig_json = glo_co.createNewJsonGlob(scenario, projectName, sceIndex);
         var result = convert.json2xml(globalConfig_json, options);
         var outputFileName = globalConfig_json.globalConfiguration._attributes.id + '.xml'
-        console.log('Converting to global configuration file: ' + path.join(folderpath, outputFileName))
-        fs.writeFile(path.join(folderpath, outputFileName), result, (err) => {
+        console.log('Converting to global configuration file: ' + path.join(folderPath, outputFileName))
+        fs.writeFile(path.join(folderPath, outputFileName), result, (err) => {
             if (err) throw err;
         })
 
@@ -54,10 +46,9 @@ module.exports = {
                 for (let modIndex in scenario[prop]) {
                     simConfig_json = sim_co.createNewJsonSim(scenario, sceIndex, projectName, modIndex);
                     var result = convert.json2xml(simConfig_json, options);
-
                     var outputFileName = simConfig_json.definitions.simulationConfiguration._attributes.id + '.xml'
-                    console.log('Converting to simulation configuration file: ' + path.join(folderpath, outputFileName))
-                    fs.writeFile(path.join(folderpath, outputFileName), result, (err) => {
+                    console.log('Converting to simulation configuration file: ' + path.join(folderPath, outputFileName))
+                    fs.writeFile(path.join(folderPath, outputFileName), result, (err) => {
                         if (err) throw err;
                     })
                 }
