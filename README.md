@@ -10,24 +10,27 @@ It consists of:
 The parameter and bpmn file from PetriSim is sent to the endpoint of the server of this container.
 The server then returns the simulation output of Scylla.
 
+## pull 📦️ Docker image
+
+Run: docker pull ghcr.io/petrisim/scylla-container:main
 
 ## build 📦️ Docker image
 
 Following instructers briefly explains the steps required to start the Flask listener in a Scylla Docker container :
+(assuming you compile scylla successfully, using Apache Maven)
 
-First, build the Docker image using the Dockerfile. From this directory, in the terminal, call 'docker build -t apiTool .'
+First, build the Docker image using the Dockerfile. From same directory, in the terminal, call 'docker build -t apiTool .'
 
-This will get Linux, Java, python and all the dependencies and set up the Docker image for later use)
+This will get Linux, Java, python and all the dependencies and set up the Docker image called apiTool for later use
 
 
-## Run 📦️ Docker image
+## Run 📦️ Docker Container
 
 After the Docker image is created, use 'docker run -p 8000:8000 -d apiTool'
 
 This runs the created image and exposes port 8000 for the Flask listener.
-You can use 'sudo docker ps' to see it's tag and 'docker logs <container-tag>' to check what it prints. 
 
-! The above instructions assume you compile scylla successfully, using Apache Maven.
+You can use 'sudo docker ps' to see it's tag and 'docker logs <container-tag>' to check what it prints. 
 
 
 
