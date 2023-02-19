@@ -46,7 +46,7 @@ class ScyllaApi(Resource):
         process = subprocess.Popen(run_scylla_command.split(), stdout=subprocess.PIPE )
 
         samples_content = os.listdir('/app/scylla/samples/') # when a GET request comes to the Flask listener, we run scylla and print the contents of /app/scylla/samples/ to check whether the experiment folder is created or not.
-        print(samples_content)
+        
         return samples_content
 
     def post(self):
