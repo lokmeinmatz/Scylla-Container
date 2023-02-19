@@ -4,6 +4,8 @@ from flask_restful import Resource, Api
 import subprocess
 import os
 import shutil
+import sys
+import time
 
 
 # Usage: send Post request to scyllaapi endpoint like this:
@@ -101,17 +103,10 @@ class ScyllaApi(Resource):
 
         # run Scylla:
         beforeList = inDirectory(projectDir)
-        projectDir1 =  projectDir
-        #subprocess.call('java -cp "scylla-dev_ui/target/classes;./dependencies/*;lib/*;*" de.hpi.bpt.scylla.Scylla --config=' + globConfig + ' --bpmn=' + bpmnArg + ' --sim=' + simConfig + ' --enable-bps-logging')
         run_scylla_command = 'java -cp /app/scylla/target/classes/:/app/dependencies/*:/app/scylla/lib/*:/app/* de.hpi.bpt.scylla.Scylla --config=' + globConfig + ' --bpmn=' + bpmnArg + ' --sim=' + simConfig + ' --enable-bps-logging'
         process = subprocess.Popen(run_scylla_command.split(), stdout=subprocess.PIPE )
-        # run_scylla_command = 'java -cp /scylla-dev_ui/target/classes/:/dependencies/*:/scylla-dev_ui/lib/*:* de.hpi.bpt.scylla.Scylla --config=/scylla-dev_ui/samples/Kreditkarte_global_1.xml --bpmn=/scylla-dev_ui/samples/Kreditkarte_1.bpmn --sim=/scylla-dev_ui/samples/Kreditkarte_sim_1.xml --enable-bps-logging'
-        # process = subprocess.Popen(run_scylla_command.split(), stdout=subprocess.PIPE )
+        time.sleep(50)
         afterList = inDirectory(projectDir)
-        projectDir2 = projectDir
-
-
-        return ('before: projectDir: ' + projectDir1 + ' contains: ' + str(beforeList) + ' after: projectDir: ' + projectDir2 + ' contains: ' + str(afterList))
 
         # new folder created from Scylla:
         newInDir = listCompare(beforeList, afterList)
