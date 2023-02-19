@@ -93,10 +93,10 @@ class ScyllaApi(Resource):
         # input of Scylla <- output of Scylla Converter:
         for f in inDirectory(projectDir):
             if f.endswith('Global.xml'):
-                globConfig = os.path.join('app', projectDir, f)     #TODO: '..' or 'app'
+                globConfig = os.path.join(projectDir, f)     #TODO: '..' or 'app' or nothing
             elif f.endswith('Sim.xml'):
-                simConfig = os.path.join('app', projectDir, f)      #TODO: '..' or 'app'
-        bpmnArg = os.path.join('app', projectDir, bpmn.filename)    #TODO: '..' or 'app'
+                simConfig = os.path.join(projectDir, f)      #TODO: '..' or 'app' or nothing
+        bpmnArg = os.path.join(projectDir, bpmn.filename)    #TODO: '..' or 'app' or nothing
 
 
         # run Scylla:
