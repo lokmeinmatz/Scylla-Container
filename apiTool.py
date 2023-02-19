@@ -74,6 +74,7 @@ class ScyllaApi(Resource):
 
         # run converter
         subprocess.call("node " + converterPath + " " + convInputFile + " " + projectDir, shell=True)
+        #subprocess.call(['bash', "ConvScript.sh", convInputFile, projectDir])
 
         # input of Scylla <- output of Scylla Converter:
         for f in inDirectory(projectDir):
@@ -127,4 +128,5 @@ class ScyllaApi(Resource):
 api.add_resource(ScyllaApi, '/scyllaapi')  # endpoint to PetriSim
 
 if __name__ == '__main__':
-    app.run(port=8080, debug=True)
+    port = int(os.environ.get('PORT', 8080))
+    app.run(port=port, host='0.0.0.0', debug=True) 
