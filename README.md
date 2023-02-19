@@ -46,8 +46,8 @@ curl --location 'http://127.0.0.1:8080/scyllaapi' \
   
 curl --location 'http://127.0.0.1:8080/scyllaapi' \
 --header 'projectid: 123' \
---form 'bpmn=@"/C:/Users/andre/github/Scylla-container/requestData/pizza_1.bpmn"' \
---form 'param=@"/C:/Users/andre/github/Scylla-container/requestData/pizza1.json"'
+--form 'bpmn=@"/C:/Users/user1/github/Scylla-container/requestData/pizza_1.bpmn"' \
+--form 'param=@"/C:/Users/user1/github/Scylla-container/requestData/pizza1.json"'
 
   
 ## Returned files to Client
