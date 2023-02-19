@@ -4,11 +4,11 @@ clone repository
 
 make sure following requirements are fullfilled:
 
-  python
-  Flask==2.2.2
+  python,
+  Flask==2.2.2,
   Flask-RESTful==0.3.9
 
-  node
+  node,
   xml-js (to install the xml-js package run "npm install --save xml-js" in command line)
 
 to run Server:
