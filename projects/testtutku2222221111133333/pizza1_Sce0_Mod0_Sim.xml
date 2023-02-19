@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions>
+	<simulationConfiguration id="pizza1_Sce0_Mod0_Sim" startDateTime="2023-02-14T14:00+01:00" processRef="Process_1" processInstances="4">
+		<Task id="Activity_1l5gi07" name="take dough">
+			<duration timeUnit="MINUTES">
+				<normalDistribution>
+					<mean>1</mean>
+					<standardDeviation>0.31622776601683794</standardDeviation>
+				</normalDistribution>
+			</duration>
+			<resources>
+				<resource id="PizzaBaker" amount="1"/>
+			</resources>
+		</Task>
+		<Task id="UserTask_12gn4u1" name="check ingredients stock">
+			<duration timeUnit="MINUTES">
+				<normalDistribution>
+					<mean>2</mean>
+					<standardDeviation>1</standardDeviation>
+				</normalDistribution>
+			</duration>
+			<resources>
+				<resource id="Waiter" amount="1"/>
+			</resources>
+		</Task>
+		<Task id="Activity_0ef7i1o" name="add tomato sauce">
+			<duration timeUnit="MINUTES">
+				<normalDistribution>
+					<mean>2</mean>
+					<standardDeviation>0.6324555320336759</standardDeviation>
+				</normalDistribution>
+			</duration>
+			<resources>
+				<resource id="PizzaBaker" amount="1"/>
+			</resources>
+		</Task>
+		<Task id="Activity_1mz4zmw" name="add toppings">
+			<duration timeUnit="MINUTES">
+				<normalDistribution>
+					<mean>4</mean>
+					<standardDeviation>1.4142135623730951</standardDeviation>
+				</normalDistribution>
+			</duration>
+			<resources>
+				<resource id="PizzaBaker" amount="1"/>
+			</resources>
+		</Task>
+		<Task id="Activity_0guqyey" name="bake">
+			<duration timeUnit="MINUTES">
+				<normalDistribution>
+					<mean>10</mean>
+					<standardDeviation>1</standardDeviation>
+				</normalDistribution>
+			</duration>
+			<resources>
+				<resource id="PizzaBaker" amount="1"/>
+			</resources>
+		</Task>
+		<exclusiveGateway id="ExclusiveGateway_1njun59">
+			<outgoingSequenceFlow id="SequenceFlow_0s080ub">
+				<branchingProbability>0.23</branchingProbability>
+			</outgoingSequenceFlow>
+			<outgoingSequenceFlow id="Flow_15g757k">
+				<branchingProbability>0.77</branchingProbability>
+			</outgoingSequenceFlow>
+		</exclusiveGateway>
+		<startEvent id="StartEvent_1vcwaly">
+			<arrivalRate timeUnit="MINUTES">
+				<normalDistribution>
+					<mean>5</mean>
+					<standardDeviation>1</standardDeviation>
+				</normalDistribution>
+			</arrivalRate>
+		</startEvent>
+		<endEvent id="EndEvent_0b4zsh7">
+			<arrivalRate timeUnit="MINUTES">
+				<normalDistribution>
+					<mean>5</mean>
+					<standardDeviation>1</standardDeviation>
+				</normalDistribution>
+			</arrivalRate>
+		</endEvent>
+		<endEvent id="EndEvent_1cyfi3n">
+			<arrivalRate timeUnit="MINUTES">
+				<normalDistribution>
+					<mean>5</mean>
+					<standardDeviation>1</standardDeviation>
+				</normalDistribution>
+			</arrivalRate>
+		</endEvent>
+	</simulationConfiguration>
+</definitions>
