@@ -53,7 +53,7 @@ curl --location 'http://127.0.0.1:8080/scyllaapi' \
 zipped Scylla output files
 
 ### 📦️ DockerFile
-Following instructers briefly explains the steps required to start the Flask listener in a Scylla Docker container (to run separately from PetriSim):
+Following instructers briefly explains the steps required to start the Flask listener in a Scylla Docker container :
 
 First, build the Docker image using the Dockerfile. From this directory, in the terminal, call 'docker build -t apiTool .'
 
@@ -65,3 +65,4 @@ This runs the created image and exposes port 8000 for the Flask listener.
 You can use 'sudo docker ps' to see it's tag and 'docker logs <container-tag>' to check what it prints. 
 
 ! The above instructions assume you compile scylla successfully, using Apache Maven.
+
