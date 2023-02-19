@@ -22,7 +22,7 @@ The server then returns the simulation output of Scylla
 ## Sending a http POST request
 
 ### Sample input files:
-- in folder _requestData_: 
+In folder _requestData_ there are sample files to simulate a request from PetriSim: 
   - BPMN-File: _pizza_1.bpmn_
   - Parameter-File: _pizza1.json_
 
@@ -49,6 +49,6 @@ curl --location 'http://127.0.0.1:8080/scyllaapi' \
 --form 'bpmn=@"/C:/Users/user1/github/Scylla-container/requestData/pizza_1.bpmn"' \
 --form 'param=@"/C:/Users/user1/github/Scylla-container/requestData/pizza1.json"'
 
-  
+
 ## Returned files to Client
 zipped Scylla output files
