@@ -3,50 +3,44 @@ from flask import Flask, request, send_file
 from flask_restful import Resource, Api
 import subprocess
 import os
+import shutil
+
 
 # Usage: send Post request to scyllaapi endpoint like this:
-# curl --location 'http://127.0.0.1:5000/scyllaapi?=newtitle' \
+# curl --location 'http://127.0.0.1:8080/scyllaapi' \
 # --header 'projectid: <enter Project ID here>' \
 # --form 'bpmn=@"<path to BPMN file>"' \
 # --form 'param=@"<path to .json Parameter-file>"'
 
-#for example:
-# curl --location 'http://127.0.0.1:5000/scyllaapi?=newtitle' \
-# --header 'projectid: testproject' \
-# --form 'bpmn=@"/C:/Users/andre/Desktop/pizza_1.bpmn"' \
-# --form 'param=@"/C:/Users/andre/Desktop/pizza1.json"'
+# for example:
+# curl --location 'http://127.0.0.1:8080/scyllaapi' \
+# --header 'projectid: 123' \
+# --form 'bpmn=@"/C:/Users/andre/github/Scylla-container/requestData/pizza_1.bpmn"' \
+# --form 'param=@"/C:/Users/andre/github/Scylla-container/requestData/pizza1.json"'
 
 
 # helper functions:
 def fileInDirectory(my_dir: str):
     return [f for f in os.listdir(my_dir) if isfile(join(my_dir, f))]
 
+
 def listCompare(beforeList: list, afterList: list):
     return [x for x in afterList if x not in beforeList]
 
+
 def inDirectory(myDir: str):
     return [x for x in os.listdir(myDir)]
+
 
 # define Api
 app = Flask("ToolAPI")
 api = Api(app)
 
-# this is a test class for debugging and testing:
-class Test(Resource):
-    def post(self):
-        projectID = request.headers['projectID']
-        projectDir = os.path.join('projects', projectID)
-        os.mkdir(projectDir)
-        bpmn = request.files['bpmn']
-        bpmn.save(os.path.join(projectDir, bpmn.filename))
-        param = request.files['param']
-        param.save(os.path.join(projectDir, param.filename))
-        return 201
-
 # this is the functionality of the Scylla-Api-endpoint to PetriSim
 class ScyllaApi(Resource):
     def get(self):
-        print("This is a GET request. Please use a POST instead to get scylla output from PetriSim input. See request form in repo readme")
+        print(
+            "This is a GET request. Please use a POST instead to get scylla output from PetriSim input. See request form in repo readme")
         return 201
 
     def post(self):
@@ -57,28 +51,27 @@ class ScyllaApi(Resource):
         else:
             return 'please define header projectid: <enter Project ID>'
         if projectID in inDirectory('projects'):
-            return("ProjectID exists already. Please choose different ID")
+            return ("ProjectID exists already. Please choose different ID")
         projectDir = os.path.join('projects', projectID)
         os.mkdir(projectDir)
 
-        # save BPMN and Parameter file from request
-        if 'bpmn' in request.files: # and request.headers['projectid'] != '':
+        # save BPMN and Parameter file from request:
+        if 'bpmn' in request.files:  # and request.headers['projectid'] != '':
             bpmn = request.files['bpmn']
         else:
             return 'please attach bpmn: <Path to bpmn>'
 
-        if 'param' in request.files: # and request.headers['projectid'] != '':
+        if 'param' in request.files:  # and request.headers['projectid'] != '':
             param = request.files['param']
         else:
             return 'please attach param: <Path to parameter file>'
-
         bpmn.save(os.path.join(projectDir, bpmn.filename))
         param.save(os.path.join(projectDir, param.filename))
 
         # build file_path_and_name for Converter
         convInputFile = os.path.join('..', projectDir, param.filename)
-
         converterPath = os.path.join('scyllaConverter', 'ConvertMain.js')
+
         # run converter
         subprocess.call("node " + converterPath + " " + convInputFile + " " + projectDir, shell=True)
         #subprocess.call(['bash', "ConvScript.sh", convInputFile, projectDir])
@@ -93,12 +86,18 @@ class ScyllaApi(Resource):
 
         # run Scylla:
         beforeList = inDirectory(projectDir)
-        subprocess.call(['bash', "ScyllaScript2.sh", '--config=' + globConfig, '--bpmn=' + bpmnArg, '--sim=' + simConfig])
+        subprocess.call(
+            ['bash', "ScyllaScript2.sh", '--config=' + globConfig, '--bpmn=' + bpmnArg, '--sim=' + simConfig])
+        # subprocess.call('java -cp "scylla-dev_ui/target/classes;./dependencies/*;lib/*;*" de.hpi.bpt.scylla.Scylla --config=' + globConfig + ' --bpmn=' + bpmnArg + ' --sim=' + simConfig + ' --enable-bps-logging')
+        # run_scylla_command = 'java -cp /scylla-dev_ui/target/classes/:/dependencies/*:/scylla-dev_ui/lib/*:* de.hpi.bpt.scylla.Scylla --config=/scylla-dev_ui/samples/Kreditkarte_global_1.xml --bpmn=/scylla-dev_ui/samples/Kreditkarte_1.bpmn --sim=/scylla-dev_ui/samples/Kreditkarte_sim_1.xml --enable-bps-logging'
+        # process = subprocess.Popen(run_scylla_command.split(), stdout=subprocess.PIPE )
         afterList = inDirectory(projectDir)
 
         # new folder created from Scylla:
         newInDir = listCompare(beforeList, afterList)
-        if len(newInDir) == 1:
+        if len(newInDir) == 0:
+            raise Exception("No output folders created by scylla!")
+        elif len(newInDir) == 1:
             newScyllaOutFolder = newInDir.pop()
         else:
             raise Exception("More folders than one created by scylla!")
@@ -106,16 +105,27 @@ class ScyllaApi(Resource):
         # get filenames created from Scylla:
         newScyllaFiles = fileInDirectory(join(projectDir, newScyllaOutFolder))
 
-        print('These are the Scylla simulation output: '+ str(newScyllaFiles))
+        print('These are the Scylla simulation output: ' + str(newScyllaFiles))
+
+        # zip scylla output files:
+        zipFormat = 'zip'
+        zipName = join(projectDir, projectID + 'ScyllaRes')
+        shutil.make_archive(zipName, zipFormat, (join(projectDir, newScyllaOutFolder)))
+
+        # send all scylla output files zipped:
+        return send_file(zipName + "." + zipFormat,
+                         as_attachment=True)
+
+        # only send event logs:
         for x in inDirectory(os.path.join(projectDir, newScyllaOutFolder)):
             if (x.endswith('.xes')):
                 logsFileName = x
         logsPathAndName = os.path.join(projectDir, newScyllaOutFolder, logsFileName)
-        return send_file(logsPathAndName, as_attachment=True) # TODO: return several files to PetriSim not only the Event Logs
+        return send_file(logsPathAndName,
+                         as_attachment=True)  # TODO: which return?
 
 
-api.add_resource(ScyllaApi, '/scyllaapi') #endpoint to PetriSim
-api.add_resource(Test, '/test') #for testing
+api.add_resource(ScyllaApi, '/scyllaapi')  # endpoint to PetriSim
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
