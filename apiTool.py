@@ -101,12 +101,16 @@ class ScyllaApi(Resource):
 
         # run Scylla:
         beforeList = inDirectory(projectDir)
+        print('projectDir: ' + projectDir)
+        print('contains: ' + str(beforeList))
         #subprocess.call('java -cp "scylla-dev_ui/target/classes;./dependencies/*;lib/*;*" de.hpi.bpt.scylla.Scylla --config=' + globConfig + ' --bpmn=' + bpmnArg + ' --sim=' + simConfig + ' --enable-bps-logging')
         run_scylla_command = 'java -cp /app/scylla/target/classes/:/app/dependencies/*:/app/scylla/lib/*:/app/* de.hpi.bpt.scylla.Scylla --config=' + globConfig + ' --bpmn=' + bpmnArg + ' --sim=' + simConfig + ' --enable-bps-logging'
         process = subprocess.Popen(run_scylla_command.split(), stdout=subprocess.PIPE )
         # run_scylla_command = 'java -cp /scylla-dev_ui/target/classes/:/dependencies/*:/scylla-dev_ui/lib/*:* de.hpi.bpt.scylla.Scylla --config=/scylla-dev_ui/samples/Kreditkarte_global_1.xml --bpmn=/scylla-dev_ui/samples/Kreditkarte_1.bpmn --sim=/scylla-dev_ui/samples/Kreditkarte_sim_1.xml --enable-bps-logging'
         # process = subprocess.Popen(run_scylla_command.split(), stdout=subprocess.PIPE )
         afterList = inDirectory(projectDir)
+        print('projectDir: ' + projectDir)
+        print('contains: ' + str(afterList))
 
         # new folder created from Scylla:
         newInDir = listCompare(beforeList, afterList)
