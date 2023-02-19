@@ -6,18 +6,28 @@ It consists of:
 - The API which provides an endpoint to the functionality of this container
 
 The parameter and bpmn file from PetriSim is sent to the endpoint of the server of this container.
-The server then returns the simulation output of Scylla
-## Prerequisites
-- clone repository
-- python
-- Flask==2.2.2
-- Flask-RESTful==0.3.9
-- node 
-- xml-js (to install the xml-js package run `npm install --save xml-js` in command line)
+The server then returns the simulation output of Scylla.
 
-## Run Server
 
-  `python apiTool.py`
+## build 📦️ Docker image
+
+Following instructers briefly explains the steps required to start the Flask listener in a Scylla Docker container :
+
+First, build the Docker image using the Dockerfile. From this directory, in the terminal, call 'docker build -t apiTool .'
+
+This will get Linux, Java, python and all the dependencies and set up the Docker image for later use)
+
+
+## Run 📦️ Docker image
+
+After the Docker image is created, use 'docker run -p 8000:8000 -d apiTool'
+
+This runs the created image and exposes port 8000 for the Flask listener.
+You can use 'sudo docker ps' to see it's tag and 'docker logs <container-tag>' to check what it prints. 
+
+! The above instructions assume you compile scylla successfully, using Apache Maven.
+
+
 
 ## Sending a http POST request
 
@@ -52,17 +62,4 @@ curl --location 'http://127.0.0.1:8080/scyllaapi' \
 ## Returned files to Client
 zipped Scylla output files
 
-### 📦️ DockerFile
-Following instructers briefly explains the steps required to start the Flask listener in a Scylla Docker container :
-
-First, build the Docker image using the Dockerfile. From this directory, in the terminal, call 'docker build -t apiTool .'
-
-This will get Linux, Java, python and all the dependencies and set up the Docker image for later use)
-
-After the Docker image is created, use 'docker run -p 8000:8000 -d apiTool'
-
-This runs the created image and exposes port 8000 for the Flask listener.
-You can use 'sudo docker ps' to see it's tag and 'docker logs <container-tag>' to check what it prints. 
-
-! The above instructions assume you compile scylla successfully, using Apache Maven.
-
+### 

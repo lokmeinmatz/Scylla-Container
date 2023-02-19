@@ -44,9 +44,10 @@ class ScyllaApi(Resource):
     def get(self):
 
         globConfig = '/app/scylla/samples/Kreditkarte_global_1.xml'
-        bpmnArg = '/ app / scylla / samples / Kreditkarte_1.bpmn'
-        simConfig = '/ app / scylla / samples / Kreditkarte_sim_1.xml'
+        bpmnArg = '/app/scylla/samples/Kreditkarte_1.bpmn'
+        simConfig = '/app/scylla/samples/Kreditkarte_sim_1.xml'
         run_scylla_command = 'java -cp /app/scylla/target/classes/:/app/dependencies/*:/app/scylla/lib/*:/app/* de.hpi.bpt.scylla.Scylla --config=' + globConfig + ' --bpmn=' + bpmnArg + ' --sim=' + simConfig + ' --enable-bps-logging'
+        #run_scylla_command = 'java -cp /app/scylla/target/classes/:/app/dependencies/*:/app/scylla/lib/*:/app/* de.hpi.bpt.scylla.Scylla --config=/app/scylla/samples/Kreditkarte_global_1.xml --bpmn=/app/scylla/samples/Kreditkarte_1.bpmn --sim=/app/scylla/samples/Kreditkarte_sim_1.xml --enable-bps-logging'
         process = subprocess.Popen(run_scylla_command.split(), stdout=subprocess.PIPE )
 
         samples_content = os.listdir('/app/scylla/samples/') # when a GET request comes to the Flask listener, we run scylla and print the contents of /app/scylla/samples/ to check whether the experiment folder is created or not.
@@ -62,7 +63,7 @@ class ScyllaApi(Resource):
             return 'please define header projectid: <enter Project ID>'
         if projectID in inDirectory('projects'):
             return ("ProjectID exists already. Please choose different ID")
-        projectDir = os.path.join('projects', projectID)
+        projectDir = os.path.join('projects', projectID)    #TODO: app?
         os.mkdir(projectDir)
 
         # save BPMN and Parameter file from request:
@@ -75,19 +76,19 @@ class ScyllaApi(Resource):
             param = request.files['param']
         else:
             return 'please attach param: <Path to parameter file>'
-        if (not bpmn.filename.endswith('.bpmn')):
+        if not bpmn.filename.endswith('.bpmn'):
             return 'please attach a .bpmn file'
-        if (not param.filename.endswith('.json')):
+        if not param.filename.endswith('.json'):
             return 'please attach a .json file'
         bpmn.save(os.path.join(projectDir, bpmn.filename))
         param.save(os.path.join(projectDir, param.filename))
 
         # build file_path_and_name for Converter
         convInputFile = os.path.join('..', projectDir, param.filename)
-        converterPath = os.path.join('scyllaConverter', 'ConvertMain.js')
+        converterPath = os.path.join('scyllaConverter', 'ConvertMain.js') #TODO: app?
 
         # run converter
-        subprocess.call("node " + converterPath + " " + convInputFile + " " + projectDir, shell=True)
+        subprocess.call("node " + converterPath + " " + convInputFile + " " + projectDir, shell=True) #TODO: app?
 
         # input of Scylla <- output of Scylla Converter:
         for f in inDirectory(projectDir):
