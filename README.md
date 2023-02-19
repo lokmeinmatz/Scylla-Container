@@ -1,5 +1,7 @@
 # Scylla-container
 This repository contains the components of the Scylla container.
+
+This version is functioning only as docker image, not from source code.
 It consists of:
 - Scylla Simulator (https://github.com/bptlab/scylla)
 - A data converter from PetriSim parameters to Scylla global and simulation configuration
