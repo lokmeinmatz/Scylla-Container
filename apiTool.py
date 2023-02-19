@@ -56,15 +56,19 @@ class ScyllaApi(Resource):
         os.mkdir(projectDir)
 
         # save BPMN and Parameter file from request:
-        if 'bpmn' in request.files:  # and request.headers['projectid'] != '':
+        if 'bpmn' in request.files and request.files['bpmn'] != '':  # and request.headers['projectid'] != '':
             bpmn = request.files['bpmn']
         else:
             return 'please attach bpmn: <Path to bpmn>'
 
-        if 'param' in request.files:  # and request.headers['projectid'] != '':
+        if 'param' in request.files and request.files['param'] != '':  # and request.headers['projectid'] != '':
             param = request.files['param']
         else:
             return 'please attach param: <Path to parameter file>'
+        if (not bpmn.filename.endswith('.bpmn')):
+            return 'please attach a .bpmn file'
+        if (not param.filename.endswith('.json')):
+            return 'please attach a .json file'
         bpmn.save(os.path.join(projectDir, bpmn.filename))
         param.save(os.path.join(projectDir, param.filename))
 
