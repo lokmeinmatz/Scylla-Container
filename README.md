@@ -13,19 +13,33 @@ The server then returns the simulation output of Scylla.
 
 ## :technologist: Getting started
 
-## :star: Run with Docker Download from Github :star:
+## :star: Run with Docker from Github :star:
 
-### pull 📦️ Docker image
-
-This option is to pull Docker image from Github:
+1) pull Docker image from Github:
 
 ```console
 docker pull ghcr.io/petrisim/scylla-container:main
 ```
 
+2) Send a http POST request (Please follow the steps at the "send a http POST request" section at the bottom)
+
 ## Run from source
 
-### build 📦️ Docker image
+1) Clone the repository
+
+```console
+git clone https://github.com/PetriSim/Scylla-container.git
+```
+
+2) Navigate into the project directory
+
+```console
+cd Scylla-container
+```
+
+3) Run it with docker
+
+#### build 📦️ Docker image
 
 Following instructers briefly explains the steps required to start the Flask listener in a Scylla Docker container :
 (assuming you compile scylla successfully, using Apache Maven)
@@ -39,7 +53,7 @@ docker build -t apiTool .
 This will get Linux, Java, python and all the dependencies and set up the Docker image called apiTool for later use
 
 
-### Run 📦️ Docker Container
+#### Run 📦️ Docker Container
 
 After the Docker image is created, run
 
@@ -50,8 +64,7 @@ This runs the created image and exposes port 8000 for the Flask listener.
 
 You can use 'sudo docker ps' to see it's tag and 'docker logs <container-tag>' to check what it prints. 
 
-
-## Sending a http POST request
+4)  Send a http POST request
 
 #### Sample input files:
 In folder _requestData_ there are sample files to simulate a request from PetriSim: 
@@ -84,7 +97,7 @@ curl --location 'http://127.0.0.1:8080/scyllaapi' \
 --form 'param=@"/C:/Users/user1/github/Scylla-container/requestData/pizza1.json"'
 ```
 
-### Returned files to Client
+#### Returned files to Client
 zipped Scylla output files
 
 ### 
