@@ -42,7 +42,11 @@ api = Api(app)
     
 class ScyllaApi(Resource):
     def get(self):
-        run_scylla_command = 'java -cp /app/scylla/target/classes/:/app/dependencies/*:/app/scylla/lib/*:/app/* de.hpi.bpt.scylla.Scylla --config=/app/scylla/samples/Kreditkarte_global_1.xml --bpmn=/app/scylla/samples/Kreditkarte_1.bpmn --sim=/app/scylla/samples/Kreditkarte_sim_1.xml --enable-bps-logging'
+
+        globConfig = '/app/scylla/samples/Kreditkarte_global_1.xml'
+        bpmnArg = '/ app / scylla / samples / Kreditkarte_1.bpmn'
+        simConfig = '/ app / scylla / samples / Kreditkarte_sim_1.xml'
+        run_scylla_command = 'java -cp /app/scylla/target/classes/:/app/dependencies/*:/app/scylla/lib/*:/app/* de.hpi.bpt.scylla.Scylla --config=' + globConfig + ' --bpmn=' + bpmnArg + ' --sim=' + simConfig + ' --enable-bps-logging'
         process = subprocess.Popen(run_scylla_command.split(), stdout=subprocess.PIPE )
 
         samples_content = os.listdir('/app/scylla/samples/') # when a GET request comes to the Flask listener, we run scylla and print the contents of /app/scylla/samples/ to check whether the experiment folder is created or not.
@@ -84,7 +88,6 @@ class ScyllaApi(Resource):
 
         # run converter
         subprocess.call("node " + converterPath + " " + convInputFile + " " + projectDir, shell=True)
-        #subprocess.call(['bash', "ConvScript.sh", convInputFile, projectDir])
 
         # input of Scylla <- output of Scylla Converter:
         for f in inDirectory(projectDir):
@@ -96,9 +99,9 @@ class ScyllaApi(Resource):
 
         # run Scylla:
         beforeList = inDirectory(projectDir)
-        subprocess.call(
-            ['bash', "ScyllaScript2.sh", '--config=' + globConfig, '--bpmn=' + bpmnArg, '--sim=' + simConfig])
-        # subprocess.call('java -cp "scylla-dev_ui/target/classes;./dependencies/*;lib/*;*" de.hpi.bpt.scylla.Scylla --config=' + globConfig + ' --bpmn=' + bpmnArg + ' --sim=' + simConfig + ' --enable-bps-logging')
+        #subprocess.call('java -cp "scylla-dev_ui/target/classes;./dependencies/*;lib/*;*" de.hpi.bpt.scylla.Scylla --config=' + globConfig + ' --bpmn=' + bpmnArg + ' --sim=' + simConfig + ' --enable-bps-logging')
+        run_scylla_command = 'java -cp /app/scylla/target/classes/:/app/dependencies/*:/app/scylla/lib/*:/app/* de.hpi.bpt.scylla.Scylla --config=' + globConfig + ' --bpmn=' + bpmnArg + ' --sim=' + simConfig + ' --enable-bps-logging'
+        process = subprocess.Popen(run_scylla_command.split(), stdout=subprocess.PIPE )
         # run_scylla_command = 'java -cp /scylla-dev_ui/target/classes/:/dependencies/*:/scylla-dev_ui/lib/*:* de.hpi.bpt.scylla.Scylla --config=/scylla-dev_ui/samples/Kreditkarte_global_1.xml --bpmn=/scylla-dev_ui/samples/Kreditkarte_1.bpmn --sim=/scylla-dev_ui/samples/Kreditkarte_sim_1.xml --enable-bps-logging'
         # process = subprocess.Popen(run_scylla_command.split(), stdout=subprocess.PIPE )
         afterList = inDirectory(projectDir)
