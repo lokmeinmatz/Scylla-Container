@@ -4,6 +4,8 @@ from flask_restful import Resource, Api
 import subprocess
 import os
 import shutil
+import sys
+import time
 
 
 # Usage: send Post request to scyllaapi endpoint like this:
@@ -35,7 +37,6 @@ def inDirectory(myDir: str):
 # define Api
 app = Flask("ToolAPI")
 api = Api(app)
-
 
 # this is the functionality of the Scylla-Api-endpoint to PetriSim
 
@@ -94,7 +95,8 @@ class ScyllaApi(Resource):
         # run Scylla:
         beforeList = inDirectory(projectDir)
         run_scylla_command = 'java -cp /app/scylla/target/classes/:/app/dependencies/*:/app/scylla/lib/*:/app/* de.hpi.bpt.scylla.Scylla --config=' + globConfig + ' --bpmn=' + bpmnArg + ' --sim=' + simConfig + ' --enable-bps-logging'
-        process = subprocess.Popen(run_scylla_command.split(), stdout=subprocess.PIPE)
+        process = subprocess.Popen(run_scylla_command.split(), stdout=subprocess.PIPE )
+        time.sleep(50)
         afterList = inDirectory(projectDir)
 
 
@@ -126,4 +128,4 @@ api.add_resource(ScyllaApi, '/scyllaapi')  # endpoint to PetriSim
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
-    app.run(port=port, host='0.0.0.0', debug=True)
+    app.run(port=port, host='0.0.0.0', debug=True) 
