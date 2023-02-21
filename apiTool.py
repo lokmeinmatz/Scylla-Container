@@ -36,23 +36,16 @@ def inDirectory(myDir: str):
 app = Flask("ToolAPI")
 api = Api(app)
 
+
 # this is the functionality of the Scylla-Api-endpoint to PetriSim
 
-       
-    
+
 class ScyllaApi(Resource):
     def get(self):
+        print(
+            "This is a GET request. Please use a POST instead to get scylla output from PetriSim input. See request form in repo readme")
+        return 201
 
-        globConfig = '/app/scylla/samples/Kreditkarte_global_1.xml'
-        bpmnArg = '/app/scylla/samples/Kreditkarte_1.bpmn'
-        simConfig = '/app/scylla/samples/Kreditkarte_sim_1.xml'
-        run_scylla_command = 'java -cp /app/scylla/target/classes/:/app/dependencies/*:/app/scylla/lib/*:/app/* de.hpi.bpt.scylla.Scylla --config=' + globConfig + ' --bpmn=' + bpmnArg + ' --sim=' + simConfig + ' --enable-bps-logging'
-        #run_scylla_command = 'java -cp /app/scylla/target/classes/:/app/dependencies/*:/app/scylla/lib/*:/app/* de.hpi.bpt.scylla.Scylla --config=/app/scylla/samples/Kreditkarte_global_1.xml --bpmn=/app/scylla/samples/Kreditkarte_1.bpmn --sim=/app/scylla/samples/Kreditkarte_sim_1.xml --enable-bps-logging'
-        process = subprocess.Popen(run_scylla_command.split(), stdout=subprocess.PIPE )
-
-        samples_content = os.listdir('/app/scylla/samples/') # when a GET request comes to the Flask listener, we run scylla and print the contents of /app/scylla/samples/ to check whether the experiment folder is created or not.
-        
-        return samples_content
 
     def post(self):
 
@@ -63,7 +56,7 @@ class ScyllaApi(Resource):
             return 'please define header projectid: <enter Project ID>'
         if projectID in inDirectory('projects'):
             return ("ProjectID exists already. Please choose different ID")
-        projectDir = os.path.join('projects', projectID)    #TODO: app?
+        projectDir = os.path.join('projects', projectID)
         os.mkdir(projectDir)
 
         # save BPMN and Parameter file from request:
@@ -85,33 +78,25 @@ class ScyllaApi(Resource):
 
         # build file_path_and_name for Converter
         convInputFile = os.path.join('..', projectDir, param.filename)
-        converterPath = os.path.join('scyllaConverter', 'ConvertMain.js') #TODO: app?
+        converterPath = os.path.join('scyllaConverter', 'ConvertMain.js')
 
         # run converter
-        subprocess.call("node " + converterPath + " " + convInputFile + " " + projectDir, shell=True) #TODO: app?
+        subprocess.call("node " + converterPath + " " + convInputFile + " " + projectDir, shell=True)
 
         # input of Scylla <- output of Scylla Converter:
         for f in inDirectory(projectDir):
             if f.endswith('Global.xml'):
-                globConfig = os.path.join(projectDir, f)     #TODO: '..' or 'app' or nothing
+                globConfig = os.path.join(projectDir, f)
             elif f.endswith('Sim.xml'):
-                simConfig = os.path.join(projectDir, f)      #TODO: '..' or 'app' or nothing
-        bpmnArg = os.path.join(projectDir, bpmn.filename)    #TODO: '..' or 'app' or nothing
-
+                simConfig = os.path.join(projectDir, f)
+        bpmnArg = os.path.join(projectDir, bpmn.filename)
 
         # run Scylla:
         beforeList = inDirectory(projectDir)
-        projectDir1 =  projectDir
-        #subprocess.call('java -cp "scylla-dev_ui/target/classes;./dependencies/*;lib/*;*" de.hpi.bpt.scylla.Scylla --config=' + globConfig + ' --bpmn=' + bpmnArg + ' --sim=' + simConfig + ' --enable-bps-logging')
         run_scylla_command = 'java -cp /app/scylla/target/classes/:/app/dependencies/*:/app/scylla/lib/*:/app/* de.hpi.bpt.scylla.Scylla --config=' + globConfig + ' --bpmn=' + bpmnArg + ' --sim=' + simConfig + ' --enable-bps-logging'
-        process = subprocess.Popen(run_scylla_command.split(), stdout=subprocess.PIPE )
-        # run_scylla_command = 'java -cp /scylla-dev_ui/target/classes/:/dependencies/*:/scylla-dev_ui/lib/*:* de.hpi.bpt.scylla.Scylla --config=/scylla-dev_ui/samples/Kreditkarte_global_1.xml --bpmn=/scylla-dev_ui/samples/Kreditkarte_1.bpmn --sim=/scylla-dev_ui/samples/Kreditkarte_sim_1.xml --enable-bps-logging'
-        # process = subprocess.Popen(run_scylla_command.split(), stdout=subprocess.PIPE )
+        process = subprocess.Popen(run_scylla_command.split(), stdout=subprocess.PIPE)
         afterList = inDirectory(projectDir)
-        projectDir2 = projectDir
 
-
-        return ('before: projectDir: ' + projectDir1 + ' contains: ' + str(beforeList) + ' after: projectDir: ' + projectDir2 + ' contains: ' + str(afterList))
 
         # new folder created from Scylla:
         newInDir = listCompare(beforeList, afterList)
@@ -136,17 +121,9 @@ class ScyllaApi(Resource):
         return send_file(zipName + "." + zipFormat,
                          as_attachment=True)
 
-        # only send event logs:
-        for x in inDirectory(os.path.join(projectDir, newScyllaOutFolder)):
-            if (x.endswith('.xes')):
-                logsFileName = x
-        logsPathAndName = os.path.join(projectDir, newScyllaOutFolder, logsFileName)
-        return send_file(logsPathAndName,
-                         as_attachment=True)  # TODO: which return?
-
 
 api.add_resource(ScyllaApi, '/scyllaapi')  # endpoint to PetriSim
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
-    app.run(port=port, host='0.0.0.0', debug=True) 
+    app.run(port=port, host='0.0.0.0', debug=True)

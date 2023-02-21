@@ -49,15 +49,15 @@ function createSimConfig(scenario, sceIndex, projectName, modIndex) {
     }
 
     // create events:
-    eventTypes = newModel.modelParameter.events.map(value => value.type)//.split(':')[1])
+    eventTypes = newModel.modelParameter.events.map(value => value.type)
 
     var uniqueEventTypes = new Array;
     for (let i in eventTypes) {
         if (!uniqueEventTypes.includes(eventTypes[i])) {
-            uniqueEventTypes.push(eventTypes[i])//.split(':')[1]);//.slice(4,-0));
+            uniqueEventTypes.push(eventTypes[i])
         }
     }
-    uniqueEventTypes = uniqueEventTypes.map(u => u.split(':')[1])    //TODO: maybe first letter lower case
+    uniqueEventTypes = uniqueEventTypes.map(u => u.split(':')[1])
     for (let i in uniqueEventTypes) {
         simConfig[uniqueEventTypes[i].charAt(0).toLowerCase() + uniqueEventTypes[i].slice(1)] = conv_ele.createEvents(newModel.modelParameter.events, uniqueEventTypes[i]);
     }

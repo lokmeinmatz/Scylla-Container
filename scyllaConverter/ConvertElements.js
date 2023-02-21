@@ -250,7 +250,6 @@ function createNormDis(distribution) {
     var distr = new Object;
 
     distr.mean = distribution.values.find(v => v.id == 'mean').value
-    //distr.standardDeviation = distribution.values.find(v=>v.id == 'standardDeviation').value
     distr.standardDeviation = Math.sqrt(distribution.values.find(v => v.id == 'variance').value)
 
     return distr;
@@ -309,7 +308,7 @@ function createUniformDis(distribution) {
     return distr;
 }
 
-function createArbFinDis(distribution) {    //TODO
+function createArbFinDis(distribution) {    //to modify if necessary
     var distr = new Object;
 
     distr.lower = distribution.values.find(v => v.id == 'lower').value
