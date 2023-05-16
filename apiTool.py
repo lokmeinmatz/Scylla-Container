@@ -1,6 +1,7 @@
 from os.path import isfile, join
 from flask import Flask, request, send_file
 from flask_restful import Resource, Api
+from flask_cors import CORS
 import subprocess
 import os
 import shutil
@@ -34,8 +35,55 @@ def inDirectory(myDir: str):
     return [x for x in os.listdir(myDir)]
 
 
+def runScylla(projectDir : str):
+        globConfig = ''
+        simConfig = ''
+        bpmn = ''
+
+        # input of Scylla <- output of Scylla Converter:
+        for f in inDirectory(projectDir):
+            if f.endswith('Global.xml'):
+                globConfig = os.path.join(projectDir, f)
+            elif f.endswith('Sim.xml'):
+                simConfig = os.path.join(projectDir, f)
+            elif f.endswith('.bpmn'):
+                bpmn = os.path.join(projectDir, f)
+
+        # run Scylla: #LB: Just give the output folder as parameter to scylla ...
+        beforeList = inDirectory(projectDir)
+        run_scylla_command = 'java -jar ../scylla/target/scylla-0.0.1-SNAPSHOT.jar --config=' + globConfig + ' --bpmn=' + bpmn + ' --sim=' + simConfig + ' --enable-bps-logging'
+        print(run_scylla_command)
+        process = subprocess.Popen(run_scylla_command.split(), stdout=subprocess.PIPE)
+        output, errors = process.communicate()
+        console = output.decode('utf-8')
+        afterList = inDirectory(projectDir)
+
+
+        # new folder created from Scylla:
+        newInDir = listCompare(beforeList, afterList)
+        if len(newInDir) == 0:
+            raise Exception("No output folders created by scylla!")
+        elif len(newInDir) == 1:
+            newScyllaOutFolder = newInDir.pop()
+        else:
+            raise Exception("More folders than one created by scylla!")
+        
+        return (console, newScyllaOutFolder)
+
+def runConverter(projectDir, paramFile):
+    # build file_path_and_name for Converter
+    convInputFile = os.path.join('..', projectDir, paramFile)
+    converterPath = os.path.join('scyllaConverter', 'ConvertMain.js')
+
+    # run converter
+    run_converter_command = "node " + converterPath + " " + convInputFile + " " + projectDir
+    print(run_converter_command)
+    subprocess.call(run_converter_command, shell=True)
+
+
 # define Api
 app = Flask("ToolAPI")
+CORS(app)
 api = Api(app)
 
 # this is the functionality of the Scylla-Api-endpoint to PetriSim
@@ -77,51 +125,18 @@ class ScyllaApi(Resource):
         bpmn.save(os.path.join(projectDir, bpmn.filename))
         param.save(os.path.join(projectDir, param.filename))
 
-        # build file_path_and_name for Converter
-        convInputFile = os.path.join('..', projectDir, param.filename)
-        converterPath = os.path.join('scyllaConverter', 'ConvertMain.js')
-
-        # run converter
-        subprocess.call("node " + converterPath + " " + convInputFile + " " + projectDir, shell=True)
-
-        # input of Scylla <- output of Scylla Converter:
-        for f in inDirectory(projectDir):
-            if f.endswith('Global.xml'):
-                globConfig = os.path.join(projectDir, f)
-            elif f.endswith('Sim.xml'):
-                simConfig = os.path.join(projectDir, f)
-        bpmnArg = os.path.join(projectDir, bpmn.filename)
-
-        # run Scylla:
-        beforeList = inDirectory(projectDir)
-        run_scylla_command = 'java -cp /app/scylla/target/classes/:/app/dependencies/*:/app/scylla/lib/*:/app/* de.hpi.bpt.scylla.Scylla --config=' + globConfig + ' --bpmn=' + bpmnArg + ' --sim=' + simConfig + ' --enable-bps-logging'
-        process = subprocess.Popen(run_scylla_command.split(), stdout=subprocess.PIPE )
-        time.sleep(50)
-        afterList = inDirectory(projectDir)
-
-
-        # new folder created from Scylla:
-        newInDir = listCompare(beforeList, afterList)
-        if len(newInDir) == 0:
-            raise Exception("No output folders created by scylla!")
-        elif len(newInDir) == 1:
-            newScyllaOutFolder = newInDir.pop()
-        else:
-            raise Exception("More folders than one created by scylla!")
+        runConverter(projectDir, param.filename)
+        (console, newScyllaOutFolder) = runScylla(projectDir)
 
         # get filenames created from Scylla:
         newScyllaFiles = fileInDirectory(join(projectDir, newScyllaOutFolder))
 
         print('These are the Scylla simulation output: ' + str(newScyllaFiles))
 
-        # zip scylla output files:
-        zipFormat = 'zip'
-        zipName = join(projectDir, projectID + 'ScyllaRes')
-        shutil.make_archive(zipName, zipFormat, (join(projectDir, newScyllaOutFolder)))
-
-        # send all scylla output files zipped:
-        return send_file(zipName + "." + zipFormat,
-                         as_attachment=True)
+        return {
+            "message": console,
+            "files": list(map(lambda fileName: { "name": fileName, 'data' : open(join(projectDir, newScyllaOutFolder, fileName)).read(), 'type': 'xml'}, newScyllaFiles))
+        } 
 
 
 api.add_resource(ScyllaApi, '/scyllaapi')  # endpoint to PetriSim
