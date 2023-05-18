@@ -1,3 +1,4 @@
+# TODO dockerfile: pull scylla
 # get Linux
 FROM alpine:latest
 WORKDIR /app/

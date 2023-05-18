@@ -40,20 +40,23 @@ module.exports = {
             if (err) throw err;
         })
 
+        let simulationConfigurations = []
         for (let prop in scenario) {
             // create one simulation configuration for each model in a scenario:
             if (prop == 'models') {
-                for (let modIndex in scenario[prop]) {
-                    simConfig_json = sim_co.createNewJsonSim(scenario, sceIndex, projectName, modIndex);
+                for (let modelIndex in scenario[prop]) {
+                    simConfig_json = sim_co.createNewJsonSim(scenario, sceIndex, projectName, modelIndex);
                     var result = convert.json2xml(simConfig_json, options);
                     var outputFileName = simConfig_json.definitions.simulationConfiguration._attributes.id + '.xml'
                     console.log('Converting to simulation configuration file: ' + path.join(folderPath, outputFileName))
                     fs.writeFile(path.join(folderPath, outputFileName), result, (err) => {
                         if (err) throw err;
-                    })
+                    });
+                    simulationConfigurations.push(outputFileName)
                 }
             }
         }
+        if (simulationConfigurations.length === 0) throw 'No modelconfiguration converted!'
         console.log('Converter is finished')
     }
 }

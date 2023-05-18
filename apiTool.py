@@ -21,6 +21,7 @@ import time
 # --form 'bpmn=@"/C:/Users/andre/github/Scylla-container/requestData/pizza_1.bpmn"' \
 # --form 'param=@"/C:/Users/andre/github/Scylla-container/requestData/pizza1.json"'
 
+#TODO react to cancellation
 
 # helper functions:
 def fileInDirectory(my_dir: str):

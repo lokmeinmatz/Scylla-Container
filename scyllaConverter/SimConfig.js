@@ -71,8 +71,8 @@ function createSimConfig(scenario, sceIndex, projectName, modIndex) {
     attributes.id = projectName + '_Sce' + sceIndex + '_Mod' + modIndex + '_Sim'
     attributes.startDateTime = date + 'T' + time
 
-    attributes.processRef = 'Process_1'
-    attributes.processInstances = scenario.numberOfInstances
+    attributes.processRef = newModel.BPMN.definitions.process[0].ATTR.id;
+    attributes.processInstances = Math.min(scenario.numberOfInstances, 100) //TODO: Scylla cannot do Billions of instances
     definitions._attributes = defAttr;
     simConfig._attributes = attributes;
     definitions.simulationConfiguration = simConfig;

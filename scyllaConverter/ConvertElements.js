@@ -70,7 +70,7 @@ function createOneRes(resource) {
     var attributes = new Object;
 
     attributes.id = resource.id
-    attributes.defaultCost = resource.costHour
+    attributes.defaultCost = resource.costHour;
     attributes.defaultQuantity = resource.numberOfInstances;
 
     res._attributes = attributes;
@@ -208,6 +208,10 @@ function createOneTimeTableItem(timetableItem) {
     attributes.beginTime = timetableItem.startTime + ':00';
     attributes.endTime = timetableItem.endTime + ':00';
 
+    //TODO ducttape
+    if (attributes.beginTime.length < '00:00'.length) attributes.beginTime = '0' + attributes.beginTime;
+    if (attributes.endTime === '24:00') attributes.endTime = '23:59';
+
     item._attributes = attributes;
     return item;
 }
@@ -266,7 +270,6 @@ function createBinomialDis(distribution) {
 
 function createConstantDis(distribution) {
     var distr = new Object;
-
     distr.constantValue = distribution.values.find(v => v.id == 'constantValue').value
 
     return distr;
