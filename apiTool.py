@@ -52,7 +52,7 @@ def runScylla(projectDir : str):
 
         # run Scylla: #LB: Just give the output folder as parameter to scylla ...
         beforeList = inDirectory(projectDir)
-        run_scylla_command = 'java -jar ../scylla/target/scylla-0.0.1-SNAPSHOT.jar --config=' + globConfig + ' --bpmn=' + bpmn + ' --sim=' + simConfig + ' --enable-bps-logging'
+        run_scylla_command = 'java -jar ../scylla/target/scylla-0.0.1-SNAPSHOT.jar --headless --config=' + globConfig + ' --bpmn=' + bpmn + ' --sim=' + simConfig + ' --enable-bps-logging'
         print(run_scylla_command)
         process = subprocess.Popen(run_scylla_command.split(), stdout=subprocess.PIPE)
         output, errors = process.communicate()
