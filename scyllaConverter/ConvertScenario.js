@@ -41,20 +41,18 @@ module.exports = {
         })
 
         let simulationConfigurations = []
-        for (let prop in scenario) {
-            // create one simulation configuration for each model in a scenario:
-            if (prop == 'models') {
-                for (let modelIndex in scenario[prop]) {
-                    simConfig_json = sim_co.createNewJsonSim(scenario, sceIndex, projectName, modelIndex);
-                    var result = convert.json2xml(simConfig_json, options);
-                    var outputFileName = simConfig_json.definitions.simulationConfiguration._attributes.id + '.xml'
-                    console.log('Converting to simulation configuration file: ' + path.join(folderPath, outputFileName))
-                    fs.writeFile(path.join(folderPath, outputFileName), result, (err) => {
-                        if (err) throw err;
-                    });
-                    simulationConfigurations.push(outputFileName)
-                }
-            }
+        // create one simulation configuration for each model in a scenario:
+        for (let modelIndex in scenario.models) {
+            let currentModel = scenario.models[modelIndex];
+            currentModel.BPMN = scenario.modelJSON[modelIndex] //TODO please work on xml for an xml model :/
+            simConfig_json = sim_co.createNewJsonSim(scenario, sceIndex, projectName, modelIndex, currentModel);
+            var result = convert.json2xml(simConfig_json, options);
+            var outputFileName = simConfig_json.definitions.simulationConfiguration._attributes.id + '.xml'
+            console.log('Converting to simulation configuration file: ' + path.join(folderPath, outputFileName))
+            fs.writeFile(path.join(folderPath, outputFileName), result, (err) => {
+                if (err) throw err;
+            });
+            simulationConfigurations.push(outputFileName)
         }
         if (simulationConfigurations.length === 0) throw 'No modelconfiguration converted!'
         console.log('Converter is finished')

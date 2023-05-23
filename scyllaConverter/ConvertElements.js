@@ -131,7 +131,9 @@ function createOneEvent(event) {
 
     attributes.id = event.id
     timeUnit = event.unit
-    ev.arrivalRate = createOneArrivalRate(event.interArrivalTime, timeUnit);
+    if (['bpmn:StartEvent', 'bpmn:IntermediateEvent'].includes(event.type)) {
+        ev.arrivalRate = createOneArrivalRate(event.interArrivalTime, timeUnit);
+    }
     ev._attributes = attributes;
     return ev;
 
