@@ -126,7 +126,7 @@ class ScyllaApi(Resource):
         bpmn.save(os.path.join(projectDir, bpmn.filename))
         param.save(os.path.join(projectDir, param.filename))
 
-        runConverter(projectDir, param.filename)
+        runConverter(projectDir, param.filename) # TODO stop if converter already throws error
         (console, newScyllaOutFolder) = runScylla(projectDir)
 
         # get filenames created from Scylla:

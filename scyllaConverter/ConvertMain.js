@@ -36,10 +36,10 @@ if (!filename.endsWith('.json')) {
 console.log('Converting input-file: ' + filename)
 
 // start conversion for each scenario in input file:
-if (jsonObj instanceof Array) {
-    for (let scenarioIndex in jsonObj) {
-        conv_sce.convertScen(jsonObj[scenarioIndex], projectName, scenarioIndex, projectDir);
-    }
+const expectedAttributes = [ "scenarioName", "startingDate", "startingTime", "numberOfInstances", "interArrivalTime", "timeUnit", "currency", "resourceParameters", "models"];
+const missingAttributes = expectedAttributes.filter(attribute => !jsonObj[attribute]);
+if (missingAttributes.length === 0) {
+    conv_sce.convertScen(jsonObj, projectName, 0, projectDir);
 } else {
-    throw new Error('input file does not conform with the format of PetriSim Parameter output. Check example input-file pizza1.json');
+    throw new Error('input file does not conform with the format of PetriSim Parameter output. Missing attributes '+missingAttributes+' Check example input-file pizza1.json');
 }
