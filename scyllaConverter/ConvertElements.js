@@ -9,22 +9,12 @@
 module.exports = {
 
     // creates all resources, calls function to create a single resource
-    createResources: function (resources) {
-        ress = new Array;
-        for (let j in resources) {
-            ress.push(createOneRes(resources[j]));
-        }
-        return ress;
-
+    createRoles: function (roles) {
+        return roles.map(role => createRole(role));
     },
     // creates all timetables, calls function to create a single timetable
     createTimeTables: function (timeTables) {
-        timetables = new Array;
-        for (let j in timeTables) {
-            timetables.push(createOneTimeTable(timeTables[j]));
-        }
-
-        return timetables;
+        return timeTables.map(timeTable => createOneTimeTable(timeTable));
     },
 
     // creates all tasks, calls function to create a single task
@@ -61,20 +51,35 @@ module.exports = {
     // makes getTimeUnit function accessible from other files
     getScenTimeUnit: function (timeUnit) {
         return (getTimeUnit(timeUnit))
+    },    
+
+    createResourceInstance : function(resource) {
+        return {
+            _attributes : {
+                id : resource.id,
+                name : resource.id,
+                cost : resource.costHour, 
+                timetableId : resource.schedule
+            }
+        };
     }
 }
 
-// creates a single resource
-function createOneRes(resource) {
-    var res = new Object;
-    var attributes = new Object;
+// creates a single role
+function createRole(role) {
+    return {
+        _attributes : {
+            id : role.id,
+            name : role.id,
 
-    attributes.id = resource.id
-    attributes.defaultCost = resource.costHour;
-    attributes.defaultQuantity = resource.numberOfInstances;
-
-    res._attributes = attributes;
-    return res;
+            defaultCost : 0, //TODO add this to data model from portal side
+            defaultQuantity : role.resources.length, //TODO be able to add additional unnamed resources from portal side
+            defaultTimetableId : role.schedule,
+            defaultTimeUnit : undefined // TODO set at other place
+        },
+        
+        instance : []
+    };
 }
 
 // creates a single task
@@ -188,16 +193,12 @@ function createOneArrivalRate(arrivalRate, timeUnit) {
 
 // creates a single timetable
 function createOneTimeTable(timetable) {
-    var tt = new Array;
-    var attributes = new Object;
-
-    attributes.id = timetable.id;
-    for (let item in timetable.timeTableItems) {
-        tt.timetableItem = createOneTimeTableItem(timetable.timeTableItems[item]);
-    }
-
-    tt._attributes = attributes;
-    return tt;
+    return {
+        _attributes : {
+            id : timetable.id
+        },
+        timetableItem : timetable.timeTableItems.map(item => createOneTimeTableItem(item))
+    };
 }
 
 // create one item of a timetable
@@ -212,6 +213,7 @@ function createOneTimeTableItem(timetableItem) {
 
     //TODO ducttape
     if (attributes.beginTime.length < '00:00'.length) attributes.beginTime = '0' + attributes.beginTime;
+    if (attributes.endTime.length < '00:00'.length) attributes.endTime = '0' + attributes.endTime;
     if (attributes.endTime === '24:00') attributes.endTime = '23:59';
 
     item._attributes = attributes;

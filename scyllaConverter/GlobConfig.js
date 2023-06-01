@@ -24,40 +24,28 @@ function createGlobConfig(scenario, projectName, sceIndex) {
     var attributes = new Object;
     var resourceData = new Object;
     var timetables = new Object;
-    for (let prop in scenario) {
 
-        //create Elements from resource parameters:
-        if (prop == 'resourceParameters') {
+    //create Elements from resource parameters:
 
-            // resources:
-            for (let prop2 in scenario[prop]) {
-                if (prop2 == 'resources') {
-                    resourceData.dynamicResource = conv_ele.createResources(scenario[prop][prop2]);
-                    // roles: here: get defaultTimetable
-                    for (let res in resourceData.dynamicResource) {
-                        var myId = resourceData.dynamicResource[res]._attributes.id;
-                        var myRoles = scenario.resourceParameters.roles
-                        for (let i in myRoles) {
-                            for (let j in myRoles[i].resources) {
-                                if (myRoles[i].resources[j].id == myId) {
-                                    sch = myRoles[i].schedule
-                                }
-                            }
-                        }
-                        resourceData.dynamicResource[res]._attributes.defaultTimetableId = sch
-                    }
-                }
-            }
-
-            //timetables:
-            for (let prop2 in scenario[prop]) {
-                if (prop2 == 'timeTables') {
-                    timetables.timetable = conv_ele.createTimeTables(scenario[prop][prop2]);
-                }
-            }
+    // resources:
+    resourceData.dynamicResource = conv_ele.createRoles(scenario.resourceParameters.roles);
+    let roleMapping = {};
+    for (let role of scenario.resourceParameters.roles) {
+        for (let resource of role.resources) {
+            if (roleMapping[resource.id]) throw new Error(`Resource ${resource} assigned to role ${role} while already being assigned to role ${roleMapping[resource.id]}`);
+            roleMapping[resource.id] = role.id;
         }
-
     }
+
+    scenario.resourceParameters.resources.forEach(resourceInstance => {
+        let role = resourceData.dynamicResource.find(role => role._attributes.id === roleMapping[resourceInstance.id]);
+        if (!role) throw new Error(`Couldn't assign resource ${resourceInstance.id} to any role.`);
+        role.instance.push(conv_ele.createResourceInstance(resourceInstance))
+    });
+
+    //timetables:
+    timetables.timetable = conv_ele.createTimeTables(scenario.resourceParameters.timeTables);
+
     attributes.id = projectName + '_Sce' + sceIndex + '_Global'
     resourceData.dynamicResource.map(d => d._attributes.defaultTimeUnit = conv_ele.getScenTimeUnit(scenario.timeUnit))
     globConfig.resourceData = resourceData;
