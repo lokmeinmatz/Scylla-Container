@@ -72,10 +72,10 @@ function createRole(role) {
             id : role.id,
             name : role.id,
 
-            defaultCost : 0, //TODO add this to data model from portal side
+            defaultCost : role.costHour, 
             defaultQuantity : role.resources.length, //TODO be able to add additional unnamed resources from portal side
             defaultTimetableId : role.schedule,
-            defaultTimeUnit : undefined // TODO set at other place
+            defaultTimeUnit : 'HOURS' // Costs are always given per hour
         },
         
         instance : []

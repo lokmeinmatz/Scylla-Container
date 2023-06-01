@@ -47,7 +47,6 @@ function createGlobConfig(scenario, projectName, sceIndex) {
     timetables.timetable = conv_ele.createTimeTables(scenario.resourceParameters.timeTables);
 
     attributes.id = projectName + '_Sce' + sceIndex + '_Global'
-    resourceData.dynamicResource.map(d => d._attributes.defaultTimeUnit = conv_ele.getScenTimeUnit(scenario.timeUnit))
     globConfig.resourceData = resourceData;
     globConfig.timetables = timetables;
     globConfig._attributes = attributes;
