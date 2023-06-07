@@ -317,14 +317,14 @@ function createUniformDis(distribution) {
 
 function createArbFinDis(distribution) {    //to modify if necessary
     var distr = new Object;
-
-    distr.lower = distribution.values.find(v => v.id == 'lower').value
-    distr.upper = distribution.values.find(v => v.id == 'upper').value
-
+    distr.entry = distribution.values.map(entry => ({
+        value : entry.value,
+        frequency : entry.frequency || 1, //TODO portal currently does not produce frequencies
+    }));
     return distr;
 }
 
-// reformat Timeout from PetriSim format to Scylla's format; currently these two available in PetriSim
+// reformat Timeout from PetriSim format to Scylla's format; currently these two available in PetriSim //TODO there should be more available and there should be a central instance where these are defined
 function getTimeUnit(timeUnit) {
     if (timeUnit == 'mins') {
         return 'MINUTES'
