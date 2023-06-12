@@ -87,13 +87,13 @@ app = Flask("ToolAPI")
 CORS(app)
 api = Api(app)
 
-# this is the functionality of the Scylla-Api-endpoint to PetriSim
+# this is the functionality of the Scylla-Api-endpoint to SimuBridge
 
 
 class ScyllaApi(Resource):
     def get(self):
         print(
-            "This is a GET request. Please use a POST instead to get scylla output from PetriSim input. See request form in repo readme")
+            "This is a GET request. Please use a POST instead to get scylla output from SimuBridge input. See request form in repo readme")
         return 201
 
 
@@ -147,7 +147,7 @@ class ScyllaApi(Resource):
             }, 500 
 
 
-api.add_resource(ScyllaApi, '/scyllaapi')  # endpoint to PetriSim
+api.add_resource(ScyllaApi, '/scyllaapi')  # endpoint to SimuBridge
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))

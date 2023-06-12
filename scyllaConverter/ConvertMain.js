@@ -41,5 +41,5 @@ const missingAttributes = expectedAttributes.filter(attribute => !jsonObj[attrib
 if (missingAttributes.length === 0) {
     await convertScen(jsonObj, projectName, 0, projectDir);
 } else {
-    throw new Error('input file does not conform with the format of PetriSim Parameter output. Missing attributes '+missingAttributes+' Check example input-file pizza1.json');
+    throw new Error('input file does not conform with the format of SimuBridge Parameter output. Missing attributes '+missingAttributes+' Check example input-file pizza1.json');
 }

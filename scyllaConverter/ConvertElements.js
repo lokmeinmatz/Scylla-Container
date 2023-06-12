@@ -284,7 +284,7 @@ function createArbFinDis(distribution) {    //to modify if necessary
     return distr;
 }
 
-// reformat Timeout from PetriSim format to Scylla's format
+// reformat timeunits from SimuBridge format to Scylla's format
 function getTimeUnit(timeUnit) {
     return {
         [TimeUnits.SECONDS] : 'SECONDS',

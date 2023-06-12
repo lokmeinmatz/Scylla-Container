@@ -1,10 +1,3 @@
-// in PetriSim representation a model contains
-//  one BPMN and
-//  one set of global configurations and
-//  one set of process configurations
-
-// one model is one element in the models array
-
 import * as path from 'path'
 import * as fs from 'fs';
 import { json2xml } from 'xml-js';
