@@ -5,11 +5,11 @@
 
 // one model is one element in the models array
 
-const glo_co = require("./GlobConfig");
-const convert = require("xml-js");
-const fs = require('fs');
-const sim_co = require("./SimConfig");
-const path = require('path');
+import * as path from 'path'
+import * as fs from 'fs';
+import { json2xml } from 'xml-js';
+import createNewJsonGlob from './GlobConfig.js';
+import createNewJsonSim from './SimConfig.js';
 
 // set options for conversion from .json to .xml
 var options = {
@@ -23,38 +23,34 @@ var options = {
 };
 
 
-module.exports = {
+export async function convertScen(scenario, projectName, sceIndex, projectDir) {
 
-    convertScen: function (scenario, projectName, sceIndex, projectDir) {
+    // create output folder path
+    var folderPath = projectDir;
+    console.log('Into folder: ' + folderPath)
 
-        // create output folder path
-        var folderPath = path.join(__dirname, '..', projectDir);
-        console.log('Into folder: ' + folderPath)
+    // create one global configuration:
+    const globalConfig_json = createNewJsonGlob(scenario, projectName, sceIndex);
+    var result = json2xml(globalConfig_json, options);
+    var outputFileName = globalConfig_json.globalConfiguration._attributes.id + '.xml'
+    console.log('Converting to global configuration file: ' + path.join(folderPath, outputFileName))
+    fs.writeFile(path.join(folderPath, outputFileName), result, (err) => {
+        if (err) throw err;
+    })
 
-        // create one global configuration:
-        globalConfig_json = glo_co.createNewJsonGlob(scenario, projectName, sceIndex);
-        var result = convert.json2xml(globalConfig_json, options);
-        var outputFileName = globalConfig_json.globalConfiguration._attributes.id + '.xml'
-        console.log('Converting to global configuration file: ' + path.join(folderPath, outputFileName))
+    let simulationConfigurations = []
+    // create one simulation configuration for each model in a scenario:
+    for (let modelIndex in scenario.models) {
+        let currentModel = scenario.models[modelIndex];
+        const simConfig_json = await createNewJsonSim(scenario, sceIndex, projectName, modelIndex, currentModel);
+        var result = json2xml(simConfig_json, options);
+        var outputFileName = simConfig_json.definitions.simulationConfiguration._attributes.id + '.xml'
+        console.log('Converting to simulation configuration file: ' + path.join(folderPath, outputFileName))
         fs.writeFile(path.join(folderPath, outputFileName), result, (err) => {
             if (err) throw err;
-        })
-
-        let simulationConfigurations = []
-        // create one simulation configuration for each model in a scenario:
-        for (let modelIndex in scenario.models) {
-            let currentModel = scenario.models[modelIndex];
-            currentModel.BPMN = scenario.modelJSON[modelIndex] //TODO please work on xml for an xml model :/
-            simConfig_json = sim_co.createNewJsonSim(scenario, sceIndex, projectName, modelIndex, currentModel);
-            var result = convert.json2xml(simConfig_json, options);
-            var outputFileName = simConfig_json.definitions.simulationConfiguration._attributes.id + '.xml'
-            console.log('Converting to simulation configuration file: ' + path.join(folderPath, outputFileName))
-            fs.writeFile(path.join(folderPath, outputFileName), result, (err) => {
-                if (err) throw err;
-            });
-            simulationConfigurations.push(outputFileName)
-        }
-        if (simulationConfigurations.length === 0) throw 'No modelconfiguration converted!'
-        console.log('Converter is finished')
+        });
+        simulationConfigurations.push(outputFileName)
     }
+    if (simulationConfigurations.length === 0) throw 'No modelconfiguration converted!'
+    console.log('Converter is finished')
 }

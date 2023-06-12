@@ -73,13 +73,13 @@ def runScylla(projectDir : str):
 
 def runConverter(projectDir, paramFile):
     # build file_path_and_name for Converter
-    convInputFile = os.path.join('..', projectDir, paramFile)
+    convInputFile = os.path.join(projectDir, paramFile)
     converterPath = os.path.join('scyllaConverter', 'ConvertMain.js')
 
     # run converter
     run_converter_command = "node " + converterPath + " " + convInputFile + " " + projectDir
     print(run_converter_command)
-    subprocess.call(run_converter_command, shell=True)
+    return subprocess.call(run_converter_command, shell=True)
 
 
 # define Api
@@ -98,46 +98,53 @@ class ScyllaApi(Resource):
 
 
     def post(self):
+        try:
+            # get projectID from header and create project Directory:
+            if 'projectid' in request.headers and request.headers['projectid'] != '':
+                projectID = request.headers['projectid']
+            else:
+                return 'please define header projectid: <enter Project ID>'
+            if projectID in inDirectory('projects'):
+                return ("ProjectID exists already. Please choose different ID")
+            projectDir = os.path.join('projects', projectID)
+            os.mkdir(projectDir)
 
-        # get projectID from header and create project Directory:
-        if 'projectid' in request.headers and request.headers['projectid'] != '':
-            projectID = request.headers['projectid']
-        else:
-            return 'please define header projectid: <enter Project ID>'
-        if projectID in inDirectory('projects'):
-            return ("ProjectID exists already. Please choose different ID")
-        projectDir = os.path.join('projects', projectID)
-        os.mkdir(projectDir)
+            # save BPMN and Parameter file from request:
+            if 'bpmn' in request.files and request.files['bpmn'] != '':  # and request.headers['projectid'] != '':
+                bpmn = request.files['bpmn']
+            else:
+                return 'please attach bpmn: <Path to bpmn>'
 
-        # save BPMN and Parameter file from request:
-        if 'bpmn' in request.files and request.files['bpmn'] != '':  # and request.headers['projectid'] != '':
-            bpmn = request.files['bpmn']
-        else:
-            return 'please attach bpmn: <Path to bpmn>'
+            if 'param' in request.files and request.files['param'] != '':  # and request.headers['projectid'] != '':
+                param = request.files['param']
+            else:
+                return 'please attach param: <Path to parameter file>'
+            if not bpmn.filename.endswith('.bpmn'):
+                return 'please attach a .bpmn file'
+            if not param.filename.endswith('.json'):
+                return 'please attach a .json file'
+            bpmn.save(os.path.join(projectDir, bpmn.filename))
+            param.save(os.path.join(projectDir, param.filename))
 
-        if 'param' in request.files and request.files['param'] != '':  # and request.headers['projectid'] != '':
-            param = request.files['param']
-        else:
-            return 'please attach param: <Path to parameter file>'
-        if not bpmn.filename.endswith('.bpmn'):
-            return 'please attach a .bpmn file'
-        if not param.filename.endswith('.json'):
-            return 'please attach a .json file'
-        bpmn.save(os.path.join(projectDir, bpmn.filename))
-        param.save(os.path.join(projectDir, param.filename))
+            returnCode = runConverter(projectDir, param.filename)
+            if (returnCode != 0):
+                raise Exception('Exception at Scylla converter')
+            
+            (console, newScyllaOutFolder) = runScylla(projectDir)
 
-        runConverter(projectDir, param.filename) # TODO stop if converter already throws error
-        (console, newScyllaOutFolder) = runScylla(projectDir)
+            # get filenames created from Scylla:
+            newScyllaFiles = fileInDirectory(join(projectDir, newScyllaOutFolder))
 
-        # get filenames created from Scylla:
-        newScyllaFiles = fileInDirectory(join(projectDir, newScyllaOutFolder))
+            print('These are the Scylla simulation output: ' + str(newScyllaFiles))
 
-        print('These are the Scylla simulation output: ' + str(newScyllaFiles))
-
-        return {
-            "message": console,
-            "files": list(map(lambda fileName: { "name": fileName, 'data' : open(join(projectDir, newScyllaOutFolder, fileName)).read(), 'type': 'xml'}, newScyllaFiles))
-        } 
+            return {
+                "message": console,
+                "files": list(map(lambda fileName: { "name": fileName, 'data' : open(join(projectDir, newScyllaOutFolder, fileName)).read(), 'type': 'xml'}, newScyllaFiles))
+            } 
+        except Exception as err:
+            return {
+                "message": 'An error occured: ' + str(err)
+            }, 500 
 
 
 api.add_resource(ScyllaApi, '/scyllaapi')  # endpoint to PetriSim

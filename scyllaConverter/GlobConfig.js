@@ -1,13 +1,10 @@
-const conv_ele = require('./ConvertElements');
+import conv_ele from './ConvertElements.js';
 
-module.exports = {
-    createNewJsonGlob: function (scenario, projectName, sceIndex) {
-
-        var newJson = {"_declaration": {"_attributes": {"version": "1.0", "encoding": "UTF-8"}}};
-        newJson.globalConfiguration = createGlobConfig(scenario, projectName, sceIndex);
-        return newJson;
-    }
-}
+export default function createNewJsonGlob (scenario, projectName, sceIndex) {
+    var newJson = {"_declaration": {"_attributes": {"version": "1.0", "encoding": "UTF-8"}}};
+    newJson.globalConfiguration = createGlobConfig(scenario, projectName, sceIndex);
+    return newJson;
+}   
 
 /** Scylla global configuration:
  * https://github.com/bptlab/scylla/wiki/Global-Configuration

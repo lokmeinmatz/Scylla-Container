@@ -15,15 +15,15 @@
  from directory: Scylla-container/scyllaConverter:
  node ConvertMain.js ../projects/testp/pizza1.json ./projects/testp
  */
-
-const conv_sce = require('./ConvertScenario');
+import {convertScen} from './ConvertScenario.js';
+import * as fs from 'fs';
 
 // read command line arguments:
 if (process.argv.length != 4) {
     throw new Error('wrong number of arguments. usage: \n' +
         'node ConvertMain.js path_and_name_of_input_file path_ for_output_files');
 }
-const jsonObj = require(process.argv[2]);
+const jsonObj = JSON.parse(fs.readFileSync(process.argv[2]))
 const filename = process.argv[2].replace(/^.*[\\\/]/, '')
 const projectDir = process.argv[3]
 const projectName = filename.split('.')[0];
@@ -36,10 +36,10 @@ if (!filename.endsWith('.json')) {
 console.log('Converting input-file: ' + filename)
 
 // start conversion for each scenario in input file:
-const expectedAttributes = [ "scenarioName", "startingDate", "startingTime", "numberOfInstances", "interArrivalTime", "timeUnit", "currency", "resourceParameters", "models"];
+const expectedAttributes = [ "scenarioName", "startingDate", "startingTime", "numberOfInstances", "timeUnit", "currency", "resourceParameters", "models"];
 const missingAttributes = expectedAttributes.filter(attribute => !jsonObj[attribute]);
 if (missingAttributes.length === 0) {
-    conv_sce.convertScen(jsonObj, projectName, 0, projectDir);
+    await convertScen(jsonObj, projectName, 0, projectDir);
 } else {
     throw new Error('input file does not conform with the format of PetriSim Parameter output. Missing attributes '+missingAttributes+' Check example input-file pizza1.json');
 }

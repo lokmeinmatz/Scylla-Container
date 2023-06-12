@@ -6,7 +6,11 @@
  *
  */
 
-module.exports = {
+import TimeUnits from '../../SimulationPortal--Main/frontend/src/util/TimeUnits.json' assert {
+    type: 'json'
+};
+
+export default {
 
     // creates all resources, calls function to create a single resource
     createRoles: function (roles) {
@@ -19,50 +23,45 @@ module.exports = {
 
     // creates all tasks, calls function to create a single task
     createTasks: function (obj) {
-        tasks = new Array;
-        for (let taskIndex in obj) {
-            tasks.push(createOneTask(obj[taskIndex]));
-        }
-        return tasks;
+        return obj.map(createOneTask);
     },
 
     // creates all gateways, calls function to create a single gateway
-    createGateways: function (obj, gatewayType) {
-        gateways = new Array;
-        for (let index in obj) {
-            if (obj[index].type.split(':')[1] == gatewayType)
-                gateways.push(createOneGateway(obj[index]));
-        }
-        return gateways;
-
+    createGateways: function (gateways, elementsById) {
+        return convertByType(gateways, elementsById, createOneGateway);
     },
 
     // creates all events, calls function to create a single event
-    createEvents: function (obj, eventType) {
-        events = new Array;
-        for (let index in obj) {
-            if (obj[index].type.split(':')[1] == eventType)
-                events.push(createOneEvent(obj[index]));
-        }
-        return events;
-
-    },
-
-    // makes getTimeUnit function accessible from other files
-    getScenTimeUnit: function (timeUnit) {
-        return (getTimeUnit(timeUnit))
-    },    
+    createEvents: function (events, elementsById) {
+        return convertByType(events, elementsById, createOneEvent);
+    },   
 
     createResourceInstance : function(resource) {
         return {
             _attributes : {
                 id : resource.id,
                 name : resource.id,
-                cost : resource.costHour, 
-                timetableId : resource.schedule
+                cost : resource.costHour || undefined, // Might be empty to signify using role default
+                timetableId : resource.schedule || undefined // "
             }
         };
     }
+}
+
+
+
+function decapitalize(string) {
+    return string[0].toLowerCase() + string.slice(1);
+}
+
+function convertByType(jsonConfigElements, elementsById, mapper) {
+    const translatedElementsPerType = {};
+    jsonConfigElements.forEach(jsonConfigElement => {
+        const elementType = decapitalize(elementsById[jsonConfigElement.id].$type.split(':').pop());
+        if (!translatedElementsPerType[elementType]) {translatedElementsPerType[elementType] = []};
+        translatedElementsPerType[elementType].push(mapper(jsonConfigElement));
+    });
+    return translatedElementsPerType;
 }
 
 // creates a single role
@@ -89,12 +88,11 @@ function createOneTask(activity) {
     var resource = new Array;
     var resources = new Object;
     attributes.id = activity.id
-    attributes.name = activity.name.replaceAll('\n', ' ')
-    timeUnit = activity.unit
-    task.duration = createOneDuration(activity.duration, timeUnit);
+    // TODO unneeded but would be nice attributes.name = activity.name.replaceAll('\n', ' ')
+    task.duration = createOneDistributionWithTime(activity.duration);
 
     // create all resources for this task, count occurances to determine number of instances:
-    for (resIndex in activity.resources) {
+    for (let resIndex in activity.resources) {
         if ((resource.some(r => r._attributes.id == activity.resources[resIndex]))) {
             var index = resource.findIndex(r => r._attributes.id == activity.resources[resIndex]);
             resource[index]._attributes.amount = (parseInt(resource[index]._attributes.amount) + 1);
@@ -109,54 +107,28 @@ function createOneTask(activity) {
 }
 
 // creates a single gateway
-function createOneGateway(gateway, probabilities) {
-
-    var gw = new Object;
-    var attributes = new Object;
-
-    attributes.id = gateway.id
-
-    // assign outgoing flows and their correponding probabilities to gateway:
-    outgoing = new Array;
-    for (let i in gateway.outgoing) {
-        outgoing[i] = createOutGoing(gateway.outgoing[i], probabilities);
+function createOneGateway(gateway) {
+    return {
+        _attributes : {
+            id : gateway.id
+        },
+        outgoingSequenceFlow : Object.entries(gateway.probabilities).map(([flowId, probability]) => ({
+            _attributes : {
+                id : flowId
+            },
+            branchingProbability : probability
+        }))
     }
-
-    gw.outgoingSequenceFlow = outgoing;
-    gw._attributes = attributes;
-    return gw;
-
 }
 
 // creates a single event
 function createOneEvent(event) {
-
-    var ev = new Object;
-    var attributes = new Object;
-
-    attributes.id = event.id
-    timeUnit = event.unit
-    if (['bpmn:StartEvent', 'bpmn:IntermediateEvent'].includes(event.type)) {
-        ev.arrivalRate = createOneArrivalRate(event.interArrivalTime, timeUnit);
+    return {
+        _attributes : {
+            id : event.id
+        },
+        arrivalRate : createOneDistributionWithTime(event.interArrivalTime)
     }
-    ev._attributes = attributes;
-    return ev;
-
-}
-
-// creates one outgoing flow and its corresponding probability
-function createOutGoing(outFlow, probabilities) {
-    var outf = new Object;
-    var attributes = new Object;
-    attributes.id = (outFlow);
-    for (let id in probabilities) {
-        if (id == outFlow) {
-            outf.branchingProbability = probabilities[id];
-        }
-    }
-
-    outf._attributes = attributes;
-    return outf;
 }
 
 // creates a single new resource element assigned to a task:
@@ -169,26 +141,14 @@ function createOneResourceForTask(resource) {
     return res;
 }
 
-// creates a duration:
-function createOneDuration(duration, timeUnit) {
-    var dur = new Object;
-    var attributes = new Object;
-    attributes.timeUnit = getTimeUnit(timeUnit);
-    disType = duration.distributionType + 'Distribution';
-    dur[disType] = createDistribution(duration)
-    dur._attributes = attributes;
-    return dur;
-}
-
-// creates an arrival rate
-function createOneArrivalRate(arrivalRate, timeUnit) {
-    var arr = new Object;
-    var attributes = new Object;
-    attributes.timeUnit = getTimeUnit(timeUnit);
-    disType = arrivalRate.distributionType + 'Distribution';
-    arr[disType] = createDistribution(arrivalRate)
-    arr._attributes = attributes;
-    return arr;
+// translates a distribution with timeunit, e.g., arrival rates or durations:
+function createOneDistributionWithTime(duration) {
+    return {
+        _attributes : {
+            timeUnit : getTimeUnit(duration.timeUnit)
+        },
+        [duration.distributionType + 'Distribution'] : createDistribution(duration)
+    }
 }
 
 // creates a single timetable
@@ -224,23 +184,23 @@ function createOneTimeTableItem(timetableItem) {
 function createDistribution(distribution) {
     var distr = new Object;
 
-    if (distribution.distributionType == 'exponential') {
+    if (distribution.distributionType === 'exponential') {
         distr = createExpDis(distribution)
-    } else if (distribution.distributionType == 'normal') {
+    } else if (distribution.distributionType === 'normal') {
         distr = createNormDis(distribution)
-    } else if (distribution.distributionType == 'binomial') {
+    } else if (distribution.distributionType === 'binomial') {
         distr = createBinomialDis(distribution)
-    } else if (distribution.distributionType == 'constant') {
+    } else if (distribution.distributionType === 'constant') {
         distr = createConstantDis(distribution)
-    } else if (distribution.distributionType == 'erlang') {
+    } else if (distribution.distributionType === 'erlang') {
         distr = createErlangDis(distribution)
-    } else if (distribution.distributionType == 'triangular') {
+    } else if (distribution.distributionType === 'triangular') {
         distr = createTrianDis(distribution)
-    } else if (distribution.distributionType == 'poisson') {
+    } else if (distribution.distributionType === 'poisson') {
         distr = createPoissonDis(distribution)
-    } else if (distribution.distributionType == 'uniform') {
+    } else if (distribution.distributionType === 'uniform') {
         distr = createUniformDis(distribution)
-    } else if (distribution.distributionType == 'arbitryFinite') {
+    } else if (distribution.distributionType === 'arbitryFinite') {
         distr = createArbFinDis(distribution)
     }
     return distr;
@@ -258,7 +218,7 @@ function createNormDis(distribution) {
     var distr = new Object;
 
     distr.mean = distribution.values.find(v => v.id == 'mean').value
-    distr.standardDeviation = Math.sqrt(distribution.values.find(v => v.id == 'variance').value)
+    distr.standardDeviation = Math.sqrt(distribution.values.find(v => v.id === 'standardDeviation').value)
 
     return distr;
 }
@@ -324,12 +284,11 @@ function createArbFinDis(distribution) {    //to modify if necessary
     return distr;
 }
 
-// reformat Timeout from PetriSim format to Scylla's format; currently these two available in PetriSim //TODO there should be more available and there should be a central instance where these are defined
+// reformat Timeout from PetriSim format to Scylla's format
 function getTimeUnit(timeUnit) {
-    if (timeUnit == 'mins') {
-        return 'MINUTES'
-    } else if (timeUnit == 'secs') {
-        return 'SECONDS'
-    }
-
+    return {
+        [TimeUnits.SECONDS] : 'SECONDS',
+        [TimeUnits.MINUTES] : 'MINUTES',
+        [TimeUnits.HOURS] : 'HOURS'
+    }[timeUnit];
 }
