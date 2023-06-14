@@ -6,9 +6,7 @@
  *
  */
 
-import TimeUnits from '../../SimulationPortal--Main/frontend/src/util/TimeUnits.json' assert {
-    type: 'json'
-};
+import { TimeUnits } from "../../SimulationPortal--Main/frontend/src/util/DataModel.js";
 
 export default {
 
@@ -142,12 +140,12 @@ function createOneResourceForTask(resource) {
 }
 
 // translates a distribution with timeunit, e.g., arrival rates or durations:
-function createOneDistributionWithTime(duration) {
+function createOneDistributionWithTime(distributionWithTimeUnit) {
     return {
         _attributes : {
-            timeUnit : getTimeUnit(duration.timeUnit)
+            timeUnit : getTimeUnit(distributionWithTimeUnit.timeUnit)
         },
-        [duration.distributionType + 'Distribution'] : createDistribution(duration)
+        [distributionWithTimeUnit.distributionType + 'Distribution'] : createDistribution(distributionWithTimeUnit)
     }
 }
 
@@ -218,7 +216,7 @@ function createNormDis(distribution) {
     var distr = new Object;
 
     distr.mean = distribution.values.find(v => v.id == 'mean').value
-    distr.standardDeviation = Math.sqrt(distribution.values.find(v => v.id === 'standardDeviation').value)
+    distr.standardDeviation = Math.sqrt(distribution.values.find(v => v.id === 'variance').value)
 
     return distr;
 }

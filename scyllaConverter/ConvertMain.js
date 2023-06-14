@@ -18,6 +18,8 @@
 import {convertScen} from './ConvertScenario.js';
 import * as fs from 'fs';
 
+import { scenario } from '../../SimulationPortal--Main/frontend/src/util/DataModel.js';
+
 // read command line arguments:
 if (process.argv.length != 4) {
     throw new Error('wrong number of arguments. usage: \n' +
@@ -36,7 +38,7 @@ if (!filename.endsWith('.json')) {
 console.log('Converting input-file: ' + filename)
 
 // start conversion for each scenario in input file:
-const expectedAttributes = [ "scenarioName", "startingDate", "startingTime", "numberOfInstances", "timeUnit", "currency", "resourceParameters", "models"];
+const expectedAttributes = Object.keys(scenario(''));
 const missingAttributes = expectedAttributes.filter(attribute => !jsonObj[attribute]);
 if (missingAttributes.length === 0) {
     await convertScen(jsonObj, projectName, 0, projectDir);
