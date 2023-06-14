@@ -52,9 +52,9 @@ def runScylla(projectDir : str):
 
         # run Scylla: #LB: Just give the output folder as parameter to scylla ...
         beforeList = inDirectory(projectDir)
-        run_scylla_command = 'java -jar ../scylla/target/scylla-0.0.1-SNAPSHOT.jar --headless --config=' + globConfig + ' --bpmn=' + bpmn + ' --sim=' + simConfig + ' --enable-bps-logging'
-        print(run_scylla_command)
-        process = subprocess.Popen(run_scylla_command.split(), stdout=subprocess.PIPE)
+        run_scylla_command = ('java -jar ../scylla/target/scylla-0.0.1-SNAPSHOT.jar --headless --enable-bps-logging'.split()) + ['--config=' + globConfig, '--bpmn=' + bpmn, '--sim=' + simConfig]
+        print(' '.join(run_scylla_command))
+        process = subprocess.Popen(run_scylla_command, stdout=subprocess.PIPE)
         output, errors = process.communicate()
         console = output.decode('utf-8')
         afterList = inDirectory(projectDir)
@@ -77,7 +77,7 @@ def runConverter(projectDir, paramFile):
     converterPath = os.path.join('scyllaConverter', 'ConvertMain.js')
 
     # run converter
-    run_converter_command = "node " + converterPath + " " + convInputFile + " " + projectDir
+    run_converter_command = "node \"" + converterPath + "\" \"" + convInputFile + "\" \"" + projectDir + "\""
     print(run_converter_command)
     return subprocess.call(run_converter_command, shell=True)
 
@@ -142,6 +142,7 @@ class ScyllaApi(Resource):
                 "files": list(map(lambda fileName: { "name": fileName, 'data' : open(join(projectDir, newScyllaOutFolder, fileName)).read(), 'type': 'xml'}, newScyllaFiles))
             } 
         except Exception as err:
+            print(err)
             return {
                 "message": 'An error occured: ' + str(err)
             }, 500 
