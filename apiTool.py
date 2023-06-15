@@ -79,18 +79,21 @@ class ScyllaApi(Resource):
 
     def post(self):
         try:
-            # get projectID from header and create project Directory:
+            requestsFolder = 'requests'
+            if not os.path.exists(requestsFolder):
+                os.makedirs(requestsFolder)
+            # get requestId from header and create project Directory:
             if 'requestId' in request.headers and request.headers['requestId'] != '':
                 requestId = request.headers['requestId']
             else:
-                return 'please define header projectid: <enter Project ID>'
-            if requestId in inDirectory('projects'):
-                return ("ProjectID exists already. Please choose different ID")
-            projectDir = os.path.join('projects', requestId)
+                return 'please define header requestId: <enter request ID>'
+            if requestId in inDirectory(requestsFolder):
+                return ("requestID exists already. Please choose different ID")
+            projectDir = os.path.join(requestsFolder, requestId)
             os.mkdir(projectDir)
 
             # save BPMN and Parameter file from request:
-            if 'bpmn' in request.files and request.files['bpmn'] != '':  # and request.headers['projectid'] != '':
+            if 'bpmn' in request.files and request.files['bpmn'] != '': 
                 bpmn = request.files['bpmn']
             else:
                 raise 'No proces model .bpmn file attached'
