@@ -1,0 +1,3 @@
+[submodule "scylla"]
+	path = scylla
+	url = git@github.com:bptlab/scylla.git
