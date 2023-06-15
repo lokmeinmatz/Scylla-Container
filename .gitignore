@@ -1,7 +1,6 @@
 /node_modules/
 /api/.idea/
 /venv/
-/scylla/
 /projects/
 # Byte-compiled / optimized / DLL files
 __pycache__/
