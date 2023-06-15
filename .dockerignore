@@ -1,0 +1,9 @@
+# Whitelist
+*
+# Include the python sources and scylla
+!*.py
+!requirements.txt
+!scylla/
+
+# Explicitly exclude .venv which has some .py files in it
+.venv/**/*.py
