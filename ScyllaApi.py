@@ -4,26 +4,15 @@ from flask_restful import Resource, Api
 from flask_cors import CORS
 import subprocess
 import os
-import shutil
 import sys
-import time
 
 from werkzeug.utils import secure_filename
 
 
-# Usage: send Post request to scyllaapi endpoint like this:
-# curl --location 'http://127.0.0.1:8080/scyllaapi' \
-# --header 'projectid: <enter Project ID here>' \
-# --form 'bpmn=@"<path to BPMN file>"' \
-# --form 'param=@"<path to .json Parameter-file>"'
-
-# for example:
-# curl --location 'http://127.0.0.1:8080/scyllaapi' \
-# --header 'projectid: 123' \
-# --form 'bpmn=@"/C:/Users/andre/github/Scylla-container/requestData/pizza_1.bpmn"' \
-# --form 'param=@"/C:/Users/andre/github/Scylla-container/requestData/pizza1.json"'
-
+# Usage: TODO add some documentation here
 #TODO react to cancellation
+
+scyllaPath = sys.argv[1]
 
 # helper functions:
 def fileInDirectory(my_dir: str):
@@ -42,7 +31,7 @@ def runScylla(projectDir : str, globConfigPath, simConfigPath, bpmnPath):
 
         # run Scylla: #LB: Just give the output folder as parameter to scylla ...
         beforeList = inDirectory(projectDir)
-        run_scylla_command = ('java -jar ./scylla/scylla-0.0.1-SNAPSHOT.jar --headless --enable-bps-logging'.split()) + ['--config=' + globConfigPath, '--bpmn=' + bpmnPath, '--sim=' + simConfigPath]
+        run_scylla_command = ('java -jar ' + scyllaPath + ' --headless --enable-bps-logging').split() + ['--config=' + globConfigPath, '--bpmn=' + bpmnPath, '--sim=' + simConfigPath]
         print(' '.join(run_scylla_command))
         process = subprocess.Popen(run_scylla_command, stdout=subprocess.PIPE)
         output, errors = process.communicate()
@@ -63,7 +52,7 @@ def runScylla(projectDir : str, globConfigPath, simConfigPath, bpmnPath):
 
 
 # define Api
-app = Flask("ToolAPI")
+app = Flask("ScyllaApi")
 CORS(app)
 api = Api(app)
 
