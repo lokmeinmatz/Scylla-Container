@@ -8,6 +8,8 @@ import shutil
 import sys
 import time
 
+from werkzeug.utils import secure_filename
+
 
 # Usage: send Post request to scyllaapi endpoint like this:
 # curl --location 'http://127.0.0.1:8080/scyllaapi' \
@@ -36,23 +38,11 @@ def inDirectory(myDir: str):
     return [x for x in os.listdir(myDir)]
 
 
-def runScylla(projectDir : str):
-        globConfig = ''
-        simConfig = ''
-        bpmn = ''
-
-        # input of Scylla <- output of Scylla Converter:
-        for f in inDirectory(projectDir):
-            if f.endswith('Global.xml'):
-                globConfig = os.path.join(projectDir, f)
-            elif f.endswith('Sim.xml'):
-                simConfig = os.path.join(projectDir, f)
-            elif f.endswith('.bpmn'):
-                bpmn = os.path.join(projectDir, f)
+def runScylla(projectDir : str, globConfigPath, simConfigPath, bpmnPath):
 
         # run Scylla: #LB: Just give the output folder as parameter to scylla ...
         beforeList = inDirectory(projectDir)
-        run_scylla_command = ('java -jar ../scylla/target/scylla-0.0.1-SNAPSHOT.jar --headless --enable-bps-logging'.split()) + ['--config=' + globConfig, '--bpmn=' + bpmn, '--sim=' + simConfig]
+        run_scylla_command = ('java -jar ../scylla/target/scylla-0.0.1-SNAPSHOT.jar --headless --enable-bps-logging'.split()) + ['--config=' + globConfigPath, '--bpmn=' + bpmnPath, '--sim=' + simConfigPath]
         print(' '.join(run_scylla_command))
         process = subprocess.Popen(run_scylla_command, stdout=subprocess.PIPE)
         output, errors = process.communicate()
@@ -70,16 +60,6 @@ def runScylla(projectDir : str):
             raise Exception("More folders than one created by scylla!")
         
         return (console, newScyllaOutFolder)
-
-def runConverter(projectDir, paramFile):
-    # build file_path_and_name for Converter
-    convInputFile = os.path.join(projectDir, paramFile)
-    converterPath = os.path.join('scyllaConverter', 'ConvertMain.js')
-
-    # run converter
-    run_converter_command = "node \"" + converterPath + "\" \"" + convInputFile + "\" \"" + projectDir + "\""
-    print(run_converter_command)
-    return subprocess.call(run_converter_command, shell=True)
 
 
 # define Api
@@ -100,37 +80,40 @@ class ScyllaApi(Resource):
     def post(self):
         try:
             # get projectID from header and create project Directory:
-            if 'projectid' in request.headers and request.headers['projectid'] != '':
-                projectID = request.headers['projectid']
+            if 'requestId' in request.headers and request.headers['requestId'] != '':
+                requestId = request.headers['requestId']
             else:
                 return 'please define header projectid: <enter Project ID>'
-            if projectID in inDirectory('projects'):
+            if requestId in inDirectory('projects'):
                 return ("ProjectID exists already. Please choose different ID")
-            projectDir = os.path.join('projects', projectID)
+            projectDir = os.path.join('projects', requestId)
             os.mkdir(projectDir)
 
             # save BPMN and Parameter file from request:
             if 'bpmn' in request.files and request.files['bpmn'] != '':  # and request.headers['projectid'] != '':
                 bpmn = request.files['bpmn']
             else:
-                return 'please attach bpmn: <Path to bpmn>'
-
-            if 'param' in request.files and request.files['param'] != '':  # and request.headers['projectid'] != '':
-                param = request.files['param']
-            else:
-                return 'please attach param: <Path to parameter file>'
-            if not bpmn.filename.endswith('.bpmn'):
-                return 'please attach a .bpmn file'
-            if not param.filename.endswith('.json'):
-                return 'please attach a .json file'
-            bpmn.save(os.path.join(projectDir, bpmn.filename))
-            param.save(os.path.join(projectDir, param.filename))
-
-            returnCode = runConverter(projectDir, param.filename)
-            if (returnCode != 0):
-                raise Exception('Exception at Scylla converter')
+                raise 'No proces model .bpmn file attached'
             
-            (console, newScyllaOutFolder) = runScylla(projectDir)
+            if 'globalConfig' in request.files and request.files['globalConfig'] != '':
+                globalConfig = request.files['globalConfig']
+            else:
+                raise 'No global simulation configuration .xml file attached'
+
+            if 'simConfig' in request.files and request.files['simConfig'] != '':
+                simConfig = request.files['simConfig']
+            else:
+                raise 'No model-specific simulation configuration .xml file attached'
+            
+            bpmnPath = os.path.join(projectDir, secure_filename(bpmn.filename))
+            globalConfigPath = os.path.join(projectDir, secure_filename(globalConfig.filename))
+            simConfigPath = os.path.join(projectDir, secure_filename(simConfig.filename))
+            
+            bpmn.save(bpmnPath)
+            globalConfig.save(globalConfigPath)
+            simConfig.save(simConfigPath)
+            
+            (console, newScyllaOutFolder) = runScylla(projectDir, globalConfigPath, simConfigPath, bpmnPath)
 
             # get filenames created from Scylla:
             newScyllaFiles = fileInDirectory(join(projectDir, newScyllaOutFolder))
