@@ -1,4 +1,4 @@
-# SimulationPortal--Scylla-Container
+# SimuBridge--Scylla-Container
 # Scylla-container
 This repository contains the components of the Scylla container.
 
@@ -29,7 +29,7 @@ docker pull ghcr.io/TODO/scylla-container:main
 1) Clone the repository
 
 ```console
-git clone https://github.com/INSM-TUM/SimulationPortal--Scylla-Container.git
+git clone https://github.com/INSM-TUM/SimuBridge--Scylla-Container.git
 ```
 
 2) Navigate into the project directory
