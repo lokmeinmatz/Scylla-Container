@@ -1,20 +1,9 @@
-# SimuBridge--Scylla-Container
-# Scylla-container
-This repository contains the components of the Scylla container.
+# Scylla-Container
+This repository provides a containerization and http-api for the [Scylla Business Process Simulator](https://github.com/bptlab/scylla).
 
-This version is functioning only as docker image, not from source code.
-It consists of:
-- Scylla Simulator (https://github.com/bptlab/scylla)
-- A data converter from SimuBridge parameters to Scylla global and simulation configuration
-- The API which provides an endpoint to the functionality of this container
+<!-- ## :technologist: Getting started -->
 
-The parameter and bpmn file from SimuBridge is sent to the endpoint of the server of this container.
-The server then returns the simulation output of Scylla.
-
-
-## :technologist: Getting started
-
-## :star: Run with Docker from Github :star:
+<!-- ## :star: Run with Docker from Github :star:
 
 1) pull Docker image from Github:
 
@@ -22,83 +11,97 @@ The server then returns the simulation output of Scylla.
 docker pull ghcr.io/TODO/scylla-container:main
 ```
 
-2) Send a http POST request (Please follow the steps at the "send a http POST request" section at the bottom)
+2) Send a http POST request (Please follow the steps at the "send a http POST request" section at the bottom) -->
 
-## Run from source
+## How to run the API
 
-1) Clone the repository
+### 1) Clone the repository
 
 ```console
-git clone https://github.com/INSM-TUM/SimuBridge--Scylla-Container.git
+git clone --recurse-submodules git@github.com:INSM-TUM/Scylla-Container.git
 ```
 
-2) Navigate into the project directory
+### 2) Navigate into the project directory
 
 ```console
 cd Scylla-container
 ```
 
-3) Run it with docker
+### 3a) Run it with docker
 
-#### build 📦️ Docker image
+The easiest way to run the Scylla http-api is to use the containerization also provided with this repo.
 
-Following instructers briefly explains the steps required to start the Flask listener in a Scylla Docker container :
-(assuming you compile scylla successfully, using Apache Maven)
+#### Build 📦️ Docker image
 
-First, build the Docker image using the Dockerfile. From same directory, in the terminal, call 
+First, build the Docker image using the Dockerfile. From the project directory, in the terminal, call 
 
 ```console
-docker build -t apiTool .
+docker build -t simulation-bridge:1.0.0 .
 ```
 
-This will get Linux, Java, python and all the dependencies and set up the Docker image called apiTool for later use
+This will get all the dependencies and set up the Docker image called `simulation-bridge`.
 
 
 #### Run 📦️ Docker Container
 
-After the Docker image is created, run
+After the Docker image is created, the Scylla http-api can be executed by running
 
 ```console
-docker run -p 8000:8000 -d apiTool'
+docker run -it -p 8080:8080 scylla-container:1.0.0
 ```
-This runs the created image and exposes port 8000 for the Flask listener.
+This instantiates the created image and exposes the api port 8080. 
 
-You can use 'sudo docker ps' to see it's tag and 'docker logs <container-tag>' to check what it prints. 
+### 3b) Run without docker (recommended only for development)
 
-4)  Send a http POST request
+To run the api without docker, Maven and Python 3 need to be installed. We also recommend to use a virtual environment to handle Python dependencies.
 
-#### Sample input files:
+#### Install dependencies
+To install the Python dependencies, run the following in the repository root folder:
+
+```console
+pip install -r requirements.txt
+```
+
+To also install Scylla, navigate to the Scylla submodule folder and run
+```console
+mvn package -DskipTests
+```
+
+Note that there should now be a `scylla<version>.jar` in the `scylla/target` folder. Remember the exact filename.
+
+#### Run API
+Then, to start the api, go back to the repository root folder and call
+```console
+python3 ScyllaApi.py ./scylla/target/<scylla-jar-filename>
+```
+The api is then running on the default port 8080.
+
+
+### 4)  Use the API by sending a http POST request
+
+#### Request structure
+As can be seen in the main [api file](./ScyllaApi.py), the api provides an http-post endpoint to synchronously start simulation runs. These request need to include the following information: 
+- A `requestId` as part of the header
+- A `bpmn` process model file in bpmn xml format, as part of the request form-data files
+- A `globalConfig` global simulation configuration file in xml format, as part of the request form-data files
+- A `simConfig` process specific simulation configuration file in xml format, as part of the request form-data files
+
+Once the simulation is finished, the request returns a `message` that contains the console output, and all `files` created by Scylla.
+
+Details on the Scylla inputs and outputs can be found in the Scylla project documentation.
+
+<!-- #### Sample input files:
 In folder _requestData_ there are sample files to simulate a request from SimuBridge: 
   - BPMN-File: _pizza_1.bpmn_
-  - Parameter-File: _pizza1.json_
+  - Parameter-File: _pizza1.json_ -->
 
-
-#### With Postman:
-  - choose endpoint: http://127.0.0.1:8080/scyllaapi
-  - define header _projectid: your_project_ID_
-  - send output from SimuBridge in body as _form-data_ each:
-    - `bpmn=@"path-to_BPMN_file"`
-    - `param=@"path-to_.json_Parameter_file"`
-
-#### The same request with curl:
-
-```console
-curl --location 'http://127.0.0.1:8080/scyllaapi' \
---header 'projectid: your_projectID' \
---form 'bpmn=@"path-to_BPMN_file"' \
---form 'param=@"path-to_.json_Parameter_file"'  
-```
   
-#### for example:
+#### Example Request using Curl:
 
 ```console
 curl --location 'http://127.0.0.1:8080/scyllaapi' \
---header 'projectid: 123' \
---form 'bpmn=@"/C:/Users/user1/github/Scylla-container/requestData/pizza_1.bpmn"' \
---form 'param=@"/C:/Users/user1/github/Scylla-container/requestData/pizza1.json"'
+--header 'requestId: request123' \
+--form 'bpmn=@"./scylla/samples/p2_normal.bpmn"' \
+--form 'simConfig=@"./scylla/samples/p2_normal_sim.xml"' \
+--form 'globalConfig=@"./scylla/samples/p0_globalconf.xml"'
 ```
-
-#### Returned files to Client
-zipped Scylla output files
-
-### 
