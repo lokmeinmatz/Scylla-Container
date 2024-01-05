@@ -36,7 +36,7 @@ The easiest way to run the Scylla http-api is to use the containerization also p
 First, build the Docker image using the Dockerfile. From the project directory, in the terminal, call 
 
 ```console
-docker build -t simulation-bridge:1.0.0 .
+docker build -t scylla-container:1.0.0 .
 ```
 
 This will get all the dependencies and set up the Docker image called `simulation-bridge`.
