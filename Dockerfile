@@ -25,6 +25,7 @@ COPY . /app
 RUN rm -r scylla
 
 # Install python requirements
+ENV PIP_BREAK_SYSTEM_PACKAGES 1
 RUN pip install -r requirements.txt
 
 # Get scylla from previous stage
