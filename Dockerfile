@@ -9,14 +9,17 @@ FROM maven:latest as installScylla
 COPY ./scylla /app/scylla
 # Install Scylla and requirements
 WORKDIR /app/scylla
+RUN mvn clean
 RUN mvn package -DskipTests
 
 # Remove everything except things needed to run
 RUN find . -mindepth 1 -maxdepth 1 ! -name 'plugins' ! -name 'target' -exec rm -r {} +
 RUN cp ./target/*.jar .
+RUN ls -la ./target
 RUN cp -r ./target/libs .
 RUN rm -r target
-RUN mv *.jar scylla.jar
+RUN ls -la
+RUN mv $(ls *.jar | grep -v 'tests.jar') scylla.jar && rm *tests.jar
 
 
 FROM setup as install
